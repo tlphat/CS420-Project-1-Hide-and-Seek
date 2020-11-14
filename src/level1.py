@@ -11,8 +11,10 @@ def myRand(l, r, n):
     return res
 
 class Seeker(Player):
-    def __init__(self, map, size, range):
-        super().__init__(map, size, range)
+    def __init__(self, map, size, range, location):
+        super().__init__(map, size, range, location)
+        self.hider = []
+        self.annouce = []
 
     def next_move(self):
         if HIDER in self.map:
@@ -21,17 +23,17 @@ class Seeker(Player):
         return
 
     def updateAnnouce(self, i, j):
-        if (self.isInsideRange(i, j)):
-            self.map[i][j] = ANNOUNCE
+        if (self.isInsideRange(0, i, j)):
+            self.annouce.append([i, j])
     
     def updateHider(self, i, j):
-        self.map[i][j] = HIDER
+        self.hider.append([i, j])
 
 #---------------------------------------------------
 
 class Hider(Player):
-    def __init__(self, map, size, range):
-        super().__init__(map, size, range)
+    def __init__(self, map, size, range, location):
+        super().__init__(map, size, range, location)
         self.annouceX = self.annouceY = None
 
     def next_move(self):
@@ -46,5 +48,6 @@ class Hider(Player):
         return self.annouceX, self.annouceY
 
     def annouce(self):
-        self.annouceX = myRand(self.X - self.range, self.X + self.range, self.n)
-        self.annouceY = myRand(self.Y - self.range, self.Y + self.range, self.m)
+        for hider in self.cell:
+            self.annouceX = myRand(hider[0] - self.range, hider[0] + self.range, self.n)
+            self.annouceY = myRand(hider[1] - self.range, hider[1] + self.range, self.m)

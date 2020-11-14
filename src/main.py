@@ -1,13 +1,12 @@
 from defines import *
 from level1 import Seeker, Hider
 from game import Game
-import copy
 
 if __name__ == "__main__":
     game = Game()
     game.read_input()
-    hider = Hider(game.getMap(), game.getSize(), game.getRangeHider())
-    seeker = Seeker(game.getMap(), game.getSize(), game.getRangeSeeker())
+    hider = Hider(game.getMap(), game.getSize(), game.getRangeHider(), game.getHiderLocation())
+    seeker = Seeker(game.getMap(), game.getSize(), game.getRangeSeeker(), game.getSeekerLocation())
 
     for i in range(20):
         seeker.next_move()

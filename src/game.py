@@ -63,6 +63,12 @@ class Game:
     def getRangeSeeker(self):
         return self.rangeSeek
 
+    def getSeekerLocation(self):
+        return self.seeker
+
+    def getHiderLocation(self):
+        return self.hider
+
     def setHider(self, id, x, y):
         self.hider[id] = [x, y]
 
