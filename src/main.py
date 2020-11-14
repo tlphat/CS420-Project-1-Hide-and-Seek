@@ -2,11 +2,18 @@ from defines import *
 from level1 import Seeker, Hider
 
 class Game:
-    def __init__(self):        
-        self.map = self.n = self.m = None
+    def __init__(self):
+        self.map = self.n = self.m = self.seeker = None
         self.seekX = self.seekY = self.hideX = self.hideY = None
         self.rangeSeek = 3
         self.rangeHide = 2
+        self.hider = []
+
+    def seeker_register(self, seeker):
+        self.seeker = seeker # intentionally shallow copy
+
+    def hider_register(self, hider):
+        self.hider.append(hider)
 
     def read_map(self, fin):
         self.map = [[0] * self.m for _ in range(self.n)]
@@ -32,21 +39,23 @@ class Game:
 
             fin.close()
 
-    def updateHider(self, i, j):
-        self.hideX, self.hideY = i, j
+    def update_hider(self, x, y):
+        self.hideX, self.hideY = x, y
 
-    def updateSeeker(self, i, j):
-        self.seekX, self.seekY = i, j
+    def update_seeker(self, x, y):
+        self.seekX, self.seekY = x, y
 
-    def isMeet(self, i, j):
-        return i == self.hideX and j == self.hideY
+    def is_meet(self, x, y):
+        return (self.hideX, self.hideY) == (x, y)
+
+    def send_announce(self, x, y):
+        seeker.update_announce(x, y)
 
 if __name__ == "__main__":
     game = Game()
     game.read_input()
-    hider = Hider(game.map, game.n, game.m, game.rangeHide)
-    seeker = Seeker(game.map, game.n, game.m, game.rangeSeek)
-    #seeker.print_map()
+    hider = Hider(game)
+    seeker = Seeker(game)
 
     for i in range(200):
         seeker.next_move()

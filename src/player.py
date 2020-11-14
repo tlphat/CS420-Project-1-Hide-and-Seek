@@ -1,18 +1,18 @@
 import copy
 
 class Player:
-    def __init__(self, map, n, m, range):
-        self.map = copy.deepcopy(map)
-        self.n = n
-        self.m = m
+    def __init__(self, game):
+        self.map = copy.deepcopy(game.map)
+        self.game = game # intentionally shallow copy
+        self.n = game.n
+        self.m = game.m
         self.turn = 0
-        self.range = range
-        self.X = self.Y = None
+        self.range = self.X = self.Y = None
 
     def print_map(self): # use for debug
         for row in self.map:
-            for i in row:
-                print("{:d}".format(i), end = " ")
+            for cell in row:
+                print("{:d}".format(cell), end = " ")
             print()
 
     def isInside(self, i, j):
@@ -28,7 +28,7 @@ class Player:
     def updateLocation(self, i , j):
         self.X, self.Y = i, j
 
-    def getLocation(self):
+    def get_location(self):
         return self.X, self.Y
 
     def up(self):

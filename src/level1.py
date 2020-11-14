@@ -3,7 +3,7 @@ import random
 import copy
 from player import Player
 
-def myRand(l, r, n):
+def my_rand(l, r, n):
     res = random.randint(l, r)
     if (res < 0):
         return 0
@@ -15,6 +15,9 @@ class Seeker(Player):
     def __init__(self, map, n, m, range):
         super().__init__(map, n, m, range)
         self.eliminate_hider_pos()
+        self.range = game.rangeSeek
+        self.list_announce = []
+        game.seeker_register(self)
 
     def eliminate_hider_pos(self):
         for i in range(self.n):
@@ -25,7 +28,7 @@ class Seeker(Player):
                     self.X = i
                     self.Y = j
 
-    def next_move(self):
+    def nexMove(self):
         if HIDER in self.map:
             a = 1
 
@@ -41,10 +44,12 @@ class Seeker(Player):
 #---------------------------------------------------
 
 class Hider(Player):
-    def __init__(self, map, n, m, range):
-        super().__init__(map, n, m, range)
-        self.annouceX = self.annouceY = None
+    def __init__(self, game):
+        super().__init__(game)
         self.eliminate_seeker_pos()
+        self.range = game.rangeHide
+        self.annouceX = self.annouceY = None
+        game.hider_register(self)
 
     def eliminate_seeker_pos(self):
         for i in range(self.n):
@@ -60,12 +65,13 @@ class Hider(Player):
         if (self.turn % 5) == 0:
             self.annouce()
     
-    def isAnnouce(self):
+    def should_announce(self):
         return (self.turn % 5) == 0
 
-    def getAnnouce(self):
+    def get_announce(self):
         return self.annouceX, self.annouceY
 
     def annouce(self):
-        self.annouceX = myRand(self.X - self.range, self.X + self.range, self.n)
-        self.annouceY = myRand(self.Y - self.range, self.Y + self.range, self.m)
+        self.annouceX = my_rand(self.X - self.range, self.X + self.range, self.n)
+        self.annouceY = my_rand(self.Y - self.range, self.Y + self.range, self.m)
+        self.game.send_announce(self.annouceX, self.annouceY)
