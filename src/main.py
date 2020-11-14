@@ -48,9 +48,14 @@ if __name__ == "__main__":
     seeker = Seeker(game.map, game.n, game.m, game.rangeSeek)
     #seeker.print_map()
 
-    for i in range(10):
+    for i in range(200):
         seeker.next_move()
         hider.next_move()
 
         if hider.isAnnouce():
             seeker.updateAnnouce(hider.getAnnouce()[0], hider.getAnnouce()[1])
+
+            print(hider.getAnnouce())
+        
+        if seeker.isInsideRange(hider.getLocation()):
+            

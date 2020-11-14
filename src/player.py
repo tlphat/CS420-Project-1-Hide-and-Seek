@@ -19,7 +19,11 @@ class Player:
         return (0 <= i and i < self.n and 0 <= j and j < self.m)
 
     def isInsideRange(self, i, j):
-        return abs(i - self.X) <= self.range and abs(j - self.Y) <= self.range
+        if not(abs(i - self.X) <= self.range and abs(j - self.Y) <= self.range):
+            return False
+        
+        if i >= self.X and j >= self.Y:
+            u, v = i - self.X, j - self.Y
 
     def updateLocation(self, i , j):
         self.X, self.Y = i, j
@@ -27,18 +31,34 @@ class Player:
     def getLocation(self):
         return self.X, self.Y
 
-    def UP(self):
+    def up(self):
         if (self.isInside(self.X - 1, self.Y)):
             self.updateLocation(self.X - 1, self.Y)
 
-    def DOWN(self):
+    def down(self):
         if (self.isInside(self.X + 1, self.Y)):
             self.updateLocation(self.X + 1, self.Y)
 
-    def LEFT(self):
+    def left(self):
         if (self.isInside(self.X, self.Y - 1)):
             self.updateLocation(self.X, self.Y - 1)
 
-    def RIGHT(self):
+    def right(self):
         if (self.isInside(self.X, self.Y + 1)):
             self.updateLocation(self.X, self.Y + 1)
+
+    def leftUp(self):
+        if (self.isInside(self.X - 1, self.Y - 1)):
+            self.updateLocation(self.X - 1, self.Y - 1)
+            
+    def rightUp(self):
+        if (self.isInside(self.X - 1, self.Y + 1)):
+            self.updateLocation(self.X - 1, self.Y + 1)
+
+    def leftDown(self):
+        if (self.isInside(self.X + 1, self.Y - 1)):
+            self.updateLocation(self.X + 1, self.Y - 1)
+
+    def rightDown(self):
+        if (self.isInside(self.X + 1, self.Y + 1)):
+            self.updateLocation(self.X + 1, self.Y + 1)

@@ -14,7 +14,6 @@ def myRand(l, r, n):
 class Seeker(Player):
     def __init__(self, map, n, m, range):
         super().__init__(map, n, m, range)
-        self.listAnnouce = []
         self.eliminate_hider_pos()
 
     def eliminate_hider_pos(self):
@@ -27,12 +26,17 @@ class Seeker(Player):
                     self.Y = j
 
     def next_move(self):
-        
+        if HIDER in self.map:
+            a = 1
+
         return
 
     def updateAnnouce(self, i, j):
         if (self.isInsideRange(i, j)):
-            self.listAnnouce.append([i, j])
+            self.map[i][j] = ANNOUNCE
+    
+    def updateHider(self, i, j):
+        self.map[i][j] = HIDER
 
 #---------------------------------------------------
 
