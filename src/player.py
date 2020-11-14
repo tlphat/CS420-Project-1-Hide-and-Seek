@@ -1,13 +1,10 @@
-import copy
-
 class Player:
-    def __init__(self, game):
-        self.map = copy.deepcopy(game.map)
-        self.game = game # intentionally shallow copy
-        self.n = game.n
-        self.m = game.m
+    def __init__(self, map, size, range):
+        self.map = map
+        self.n, self.m = size
+        self.range = range
         self.turn = 0
-        self.range = self.X = self.Y = None
+        self.X = self.Y = None
 
     def print_map(self): # use for debug
         for row in self.map:
@@ -28,8 +25,10 @@ class Player:
     def updateLocation(self, i , j):
         self.X, self.Y = i, j
 
-    def get_location(self):
+    def getLocation(self):
         return self.X, self.Y
+
+    # <MOVING> -----------------------------------------
 
     def up(self):
         if (self.isInside(self.X - 1, self.Y)):
@@ -62,3 +61,5 @@ class Player:
     def rightDown(self):
         if (self.isInside(self.X + 1, self.Y + 1)):
             self.updateLocation(self.X + 1, self.Y + 1)
+
+    # </MOVING> -----------------------------------------
