@@ -1,6 +1,8 @@
 from defines import *
 import random
 from player import Player
+import numpy as np
+import heapq
 
 def myRand(l, r, n):
     res = random.randint(l, r)
@@ -17,6 +19,47 @@ class Seeker(Player):
         super().__init__(map, size, range, location)
         self.hider = []
         self.annouce = []
+        self.heuristic = np.zeros((self.n, self.m))
+
+        self.initHeuristic()
+    
+    def calcHeuristic(self, i, j):
+        calc = 0
+        for dir in DIR:
+            u, v = i + dir[0], j + dir[1]
+            if not self.isInsideMap(u, v) or self.map[u][v] != EMPTY:
+                calc += 1
+        return calc
+
+    def initHeuristic(self):
+        for i in range(self.n):
+            for j in range(self.m):
+                if self.isInsideRange(0, i, j) or self.map[i][j] == WALL or self.map[i][j] == OBS:
+                    self.heuristic[i][j] = int('infinity')
+                    continue
+                self.heuristic[i][j] = self.calcHeuristic(i, j)
+                
+    def fillHeuristic(self):
+        obj = self.cell[0]
+        for i in range(max(0, obj[0] - self.range), min(self.n-1, obj[0] + self.range)):
+            for j in range(max(0, obj[1] - self.range), min(self.m-1, obj[1] + self.range)):
+                if (self.cell[i][j] == EMPTY):
+                    self.cell[i][j] = VERIFIED
+                    self.heuristic[i][j] = int('infinity')
+
+    def minHeuristicInRange(self):
+        curH = int('infinity')
+        u = v = None
+        obj = self.cell[0]
+        for i in range(max(0, obj[0] - 2*self.range-1), min(self.n-1, obj[0] + 2*self.range+1)):
+            for j in range(max(0, obj[1] - 2*self.range-1), min(self.m-1, obj[1] + 2*self.range+1)):
+                if (self.cell[i][j] == EMPTY):
+                    if (curH > self.heuristic[i][j]):
+                        curH = self.heuristic[i][j]
+                        u, v = i, j
+        if (u == None):
+            return u
+        return u, v
 
     def next_move(self):
         if len(self.hider) > 0:
@@ -30,10 +73,25 @@ class Seeker(Player):
                 exit(0)
             return
         
+        if not self.isExistThisStateAround(0, VERIFIED):
+            self.turn = 1
+
         if self.turn < 5:
+            self.turn += 1
+            return
+        else:
+            self.fillHeuristic()
+
+        target = self.minHeuristicInRange()
+
+        if target != None:
+            if not self.directToCell(0, target):
+                print('You never want this sentence appear')
+                exit(0)
             return
 
-        
+                
+
 
     def updateAnnouce(self, location):
         i, j = location
