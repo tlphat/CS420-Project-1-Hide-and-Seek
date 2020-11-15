@@ -33,6 +33,14 @@ class Player:
     def getLocation(self, id):
         return self.cell[id]
 
+    def isExistThisStateAround(self, id, type):
+        obj = self.cell[id]
+        for i in range(max(0, obj[0] - self.range), min(self.n-1, obj[0] + self.range)):
+            for j in range(max(0, obj[1] - self.range), min(self.m-1, obj[1] + self.range)):
+                if (self.map[i][j] == id):
+                    return True
+        return False
+
     # <Direct> -----------------------------------------
 
     def directToCell(self, id, target):
