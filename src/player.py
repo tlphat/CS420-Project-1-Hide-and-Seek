@@ -19,13 +19,54 @@ class Player:
     def isInsideMap(self, i, j):
         return (0 <= i and i < self.n and 0 <= j and j < self.m)
 
+    def observe_horizontal(self, id, i, j):
+        x, y = self.cell[id][0], self.cell[id][1]
+        for k in range(min(y, j), max(y, j)):
+            if self.map[x][k] in [WALL, OBS]:
+                return False
+        return True
+
+    def observe_vertical(self, id, i, j):
+        x, y = self.cell[id][0], self.cell[id][1]
+        for k in range(min(x, i), max(x, i)):
+            if self.map[k][y] in [WALL, OBS]:
+                return False
+        return True
+
+    def observe_diagonal(self, id, i, j):
+        x, y = self.cell[id][0], self.cell[id][1]
+        for k in range(min(i, x) + 1, max(i, x)):
+            if self.map[k][min(j, y) + k - min(x, i)] in [WALL, OBS]:
+                return False
+        return True
+
+    def observe_odd_cases(self, id, i, j):
+        x, y = self.cell[id][0], self.cell[id][1]
+        if abs(x - i) == 3:
+            if self.map[x-1*(x-i)/abs(x-i)][j+(y-j)/abs(y-j)] in [WALL, OBS] or \
+                self.map[x-2*(x-i)/abs(x-i)][y-(y-j)/abs(y-j)] in [WALL, OBS]:
+                return False
+        else:
+            if self.map[y-1*(y-j)/abs(y-j)][i+(x-i)/abs(x-i)] in [WALL, OBS] or \
+                self.map[y-2*(y-j)/abs(y-j)][x-(x-i)/abs(x-i)] in [WALL, OBS]:
+                return False
+        return True
+
     def isInsideRange(self, id, i, j):
         obj = self.cell[id]
         if not(abs(i - obj[0]) <= self.range and abs(j - obj[1]) <= self.range):
             return False
-        
-        if i >= obj[0] and j >= obj[1]:
-            u, v = i - obj[0], j - obj[1]
+        if (abs(i - obj[0]) + abs(j - obj[1]) < 2):
+            return True
+        if (abs(i - obj[0]) + abs(j - obj[1]) == 3):
+            return True
+        if (i == obj[0]):
+            return self.observe_horizontal(id, i, j)
+        if (j == obj[1]):
+            return self.observe_vertical(id, i, j)
+        if (abs(i - j) == abs(obj[0] - obj[1])):
+            return self.observe_diagonal(id, i, j)
+        return self.observe_odd_cases(id, i, j)
 
     def updateLocation(self, id, i , j):
         self.cell[id] = [i, j]
