@@ -10,6 +10,8 @@ def myRand(l, r, n):
         return n - 1
     return res
 
+#---------------------------------------------------------
+
 class Seeker(Player):
     def __init__(self, map, size, range, location):
         super().__init__(map, size, range, location)
@@ -17,17 +19,31 @@ class Seeker(Player):
         self.annouce = []
 
     def next_move(self):
-        if HIDER in self.map:
-            a = 1
+        if len(self.hider) > 0:
+            if not self.directToCell(0, self.hider[0]):
+                print('Find hider but do not have way to get there')
+                exit(0)
+            return
+        if len(self.annouce) > 0:
+            if not self.directToCell(0, self.annouce[0]):
+                print('Get annouce but do not have way to get there')
+                exit(0)
+            return
+        
+        if self.turn < 5:
+            return
 
-        return
+        
 
-    def updateAnnouce(self, i, j):
+    def updateAnnouce(self, location):
+        i, j = location
+        self.map[i][j] = ANNOUNCE
         if (self.isInsideRange(0, i, j)):
             self.annouce.append([i, j])
     
     def updateHider(self, i, j):
         self.hider.append([i, j])
+        self.map[i][j] = HIDER
 
 #---------------------------------------------------
 

@@ -8,14 +8,11 @@ class Game:
         self.hider = []
         self.rangeSeek = 3
         self.rangeHide = 2
-        self.noHider = 0
 
     # <ReadInput>----------------------------------------
 
     def read_map(self, fin):
-        self.map = [[0] * self.m for _ in range(self.n)]
-        for i in range(self.n):
-            self.map[i] = [int(x) for x in fin.readline().split(" ")]
+        self.map = [[int(x) for x in fin.readline().split(" ")] for i in range(self.n)]
     
     def init_map(self):
         for i in range(self.n):
@@ -40,7 +37,7 @@ class Game:
     def read_input(self):
         with open("../map/sample_map.txt", "r") as fin:
             self.n, self.m = [int(x) for x in fin.readline().split(" ")]
-
+            
             self.read_map(fin)
             self.read_obstacles(fin)
             self.init_map()
@@ -82,3 +79,14 @@ class Game:
             if i == [x, y]:
                 return True
         return False
+
+    def printMap(self):
+        for i in range(self.n):
+            for j in range(self.m):
+                if [i, j] in self.hider:
+                    print("{:d}".format(HIDER), end = " ")
+                elif [i, j] in self.seeker:
+                    print("{:d}".format(SEEKER), end = " ")
+                else:  
+                    print("{:d}".format(self.map[i][j]), end = " ")
+            print()
