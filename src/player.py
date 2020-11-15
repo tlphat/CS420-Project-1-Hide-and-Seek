@@ -23,9 +23,8 @@ class Player:
         obj = self.cell[id]
         if not(abs(i - obj[0]) <= self.range and abs(j - obj[1]) <= self.range):
             return False
-        
-        if i >= obj[0] and j >= obj[1]:
-            u, v = i - obj[0], j - obj[1]
+            
+        return True
 
     def updateLocation(self, id, i , j):
         self.cell[id] = [i, j]
@@ -46,10 +45,10 @@ class Player:
     def directToCell(self, id, target):
         # dijkstra heap
 
-        d = np.full((self.n, self.m), int('infinity'))
+        d = np.full((self.n, self.m), float('infinity'))
         # d = [[int('infinity') for j in range(self.m)] for i in range(self.n)]
-        pre = np.full((self.n, self.m), [-1, -1])
-        #pre = [[ [-1, -1] for j in range(self.m)] for i in range(self.n)]
+        #pre = np.full((self.n, self.m), [-1, -1])
+        pre = [[ [-1, -1] for j in range(self.m)] for i in range(self.n)]
         u, v = self.cell[id]
         d[u][v] = 0
 
@@ -58,21 +57,23 @@ class Player:
         while len(pq) > 0:
             du, [u, v] = heapq.heappop(pq)
 
-            if du > d[u][v]:
+            if du != d[u][v]:
                 continue
 
             if [u, v] == target:
+                print('aaaa')
                 break
 
             for direct in DIR:
                 uu, vv = u + direct[0], v + direct[1]
 
-                if not self.isInsideRange(id, uu, vv):
+                if not self.isInsideMap(uu, vv):
                     continue
 
                 if du + 1 < d[uu][vv]:
                     d[uu][vv] = du + 1
                     pre[uu][vv] = [u, v]
+                    #print('pre[',uu,'][',vv,'] =',pre[uu][vv])
                     heapq.heappush(pq, (d[uu][vv], [uu, vv]))
         
         # backtrack
@@ -82,10 +83,12 @@ class Player:
         if pre[u][v] == -1:
             return False
 
+
         while pre[u][v] != self.cell[id]:
+            #print('pre[',u,'][',v,']=',pre[u][v])
             u, v = pre[u][v]
 
-        self.movingByDirect(id, [u - self.cell[id], v - self.cell[id]])
+        self.movingByDirect(id, [u - self.cell[id][0], v - self.cell[id][1]])
 
         return True
     
