@@ -84,7 +84,7 @@ class Seeker(Player):
         print('Not annouce yet')
         
         self.turn += 1
-        if self.turn % 5 != 0:
+        if self.turn <= 5 or self.turn % 5 != 1:
             print('Waiting in turn ', self.turn)
             return
         else:
