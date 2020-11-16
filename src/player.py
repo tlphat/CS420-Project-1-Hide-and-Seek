@@ -3,12 +3,13 @@ import numpy as np
 import heapq
 
 class Player:
-    def __init__(self, map, size, range, location):
+    def __init__(self, map, size, range, location, gui):
         self.map = map
         self.n, self.m = size
         self.range = range
         self.turn = 0
         self.cell = location
+        self.gui = gui
 
     def print_map(self): # use for debug
         for row in self.map:
@@ -47,8 +48,8 @@ class Player:
                 self.map[x-2*(x-i)//abs(x-i)][y-(y-j)//abs(y-j)] in [WALL, OBS]:
                 return False
         else:
-            if self.map[y-1*(y-j)//abs(y-j)][i+(x-i)//abs(x-i)] in [WALL, OBS] or \
-                self.map[y-2*(y-j)//abs(y-j)][x-(x-i)//abs(x-i)] in [WALL, OBS]:
+            if self.map[i+(x-i)//abs(x-i)][y-1*(y-j)//abs(y-j)] in [WALL, OBS] or \
+                self.map[x-(x-i)//abs(x-i)][y-2*(y-j)//abs(y-j)] in [WALL, OBS]:
                 return False
         return True
 
@@ -64,7 +65,7 @@ class Player:
             return self.observe_horizontal(id, i, j)
         if (j == obj[1]):
             return self.observe_vertical(id, i, j)
-        if (abs(i - j) == abs(obj[0] - obj[1])):
+        if (abs(obj[0] - i) == abs(obj[1] - j)):
             return self.observe_diagonal(id, i, j)
         return self.observe_odd_cases(id, i, j)
 
@@ -147,6 +148,7 @@ class Player:
         i, j = direct
         for dir in range(8):
             if (DIR[dir] == [i, j]):
+                self.gui.append_move(DIR[dir][0], DIR[dir][1])
                 if (dir == 0):
                     self.leftUp(id)
                 elif (dir == 1):

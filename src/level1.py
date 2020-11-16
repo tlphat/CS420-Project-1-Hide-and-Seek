@@ -15,8 +15,8 @@ def myRand(l, r, n):
 #---------------------------------------------------------
 
 class Seeker(Player):
-    def __init__(self, map, size, range, location):
-        super().__init__(map, size, range, location)
+    def __init__(self, map, size, range, location, gui):
+        super().__init__(map, size, range, location, gui)
         self.hider = []
         self.annouce = []
         self.heuristic = np.zeros((self.n, self.m))
@@ -70,7 +70,7 @@ class Seeker(Player):
             print('Goto hider')
             if not self.directToCell(0, self.hider[0]):
                 print('Find hider but do not have way to get there')
-                exit(0)
+                #exit(0)
             return
 
         print('Not find hider yet')
@@ -79,7 +79,7 @@ class Seeker(Player):
             print('Goto annouce')
             if not self.directToCell(0, self.annouce[0]):
                 print('Get annouce but do not have way to get there')
-                exit(0)
+                #exit(0)
             return
 
         print('Not annouce yet')
@@ -103,7 +103,7 @@ class Seeker(Player):
             print('neighbor heuristic not none:', target)
             if not self.directToCell(0, target):
                 print('You never want this sentence appear')
-                exit(0)
+                #exit(0)
             return
         
         print('neighbor none')
@@ -121,8 +121,8 @@ class Seeker(Player):
 #---------------------------------------------------
 
 class Hider(Player):
-    def __init__(self, map, size, range, location):
-        super().__init__(map, size, range, location)
+    def __init__(self, map, size, range, location, gui):
+        super().__init__(map, size, range, location, gui)
         self.annouceX = self.annouceY = None
 
     def next_move(self):

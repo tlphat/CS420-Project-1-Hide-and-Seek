@@ -2,12 +2,13 @@ from defines import *
 import copy
 
 class Game:
-    def __init__(self):
+    def __init__(self, gui):
         self.map = self.n = self.m = self.seeker = None
         self.seeker = []
         self.hider = []
         self.rangeSeek = 3
         self.rangeHide = 2
+        self.gui = gui
 
     # <ReadInput>----------------------------------------
 
@@ -34,12 +35,13 @@ class Game:
                     self.map[i][j] = OBS
             line = fin.readline()
 
-    def read_input(self):
-        with open("../map/sample_map.txt", "r") as fin:
+    def read_input(self, map_name):
+        with open("../map/" + map_name + ".txt", "r") as fin:
             self.n, self.m = [int(x) for x in fin.readline().split(" ")]
             
             self.read_map(fin)
             self.read_obstacles(fin)
+            self.gui.read_config(self.map)
             self.init_map()
 
             fin.close()
