@@ -22,12 +22,16 @@ if __name__ == "__main__":
     print('SEEKER:')
     print(seeker.getLocation(0))
 
-    for turn in range(20):
-        seeker.next_move()
-        hider.next_move()
+    # print(seeker.heuristic)
 
-        if hider.isAnnouce():
-            seeker.updateAnnouce(hider.getAnnouce())
+    seeker.cell.append([1, 16])
 
-            print(hider.getAnnouce())
+    print(seeker.isInsideRange(1, 0, 17))
+
+    # for turn in range(50):
+    #     seeker.next_move()
+    #     hider.next_move()
+
+    #     if hider.isAnnouce():
+    #         seeker.updateAnnouce(hider.getAnnouce())
         

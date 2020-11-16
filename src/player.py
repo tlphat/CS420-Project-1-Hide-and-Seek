@@ -103,13 +103,20 @@ class Player:
                 continue
 
             if [u, v] == target:
-                print('aaaa')
                 break
 
             for direct in DIR:
                 uu, vv = u + direct[0], v + direct[1]
 
+                if len(self.cell) == 1:
+                    self.cell.append([u, v])
+                else:
+                    self.cell[1] = [u, v]
+
                 if not self.isInsideMap(uu, vv):
+                    continue
+
+                if not self.isInsideRange(1, uu, vv) or self.map[uu][vv] in [OBS, WALL]:
                     continue
 
                 if du + 1 < d[uu][vv]:
@@ -122,13 +129,15 @@ class Player:
 
         u, v = target
 
-        if pre[u][v] == -1:
+        if pre[u][v] == [-1, -1]:
             return False
 
 
         while pre[u][v] != self.cell[id]:
-            #print('pre[',u,'][',v,']=',pre[u][v])
+            print('pre[',u,'][',v,']=',pre[u][v])
             u, v = pre[u][v]
+
+        print('Direct:', u, v)
 
         self.movingByDirect(id, [u - self.cell[id][0], v - self.cell[id][1]])
 
