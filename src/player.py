@@ -43,12 +43,12 @@ class Player:
     def observe_odd_cases(self, id, i, j):
         x, y = self.cell[id][0], self.cell[id][1]
         if abs(x - i) == 3:
-            if self.map[x-1*(x-i)/abs(x-i)][j+(y-j)/abs(y-j)] in [WALL, OBS] or \
-                self.map[x-2*(x-i)/abs(x-i)][y-(y-j)/abs(y-j)] in [WALL, OBS]:
+            if self.map[x-1*(x-i)//abs(x-i)][j+(y-j)//abs(y-j)] in [WALL, OBS] or \
+                self.map[x-2*(x-i)//abs(x-i)][y-(y-j)//abs(y-j)] in [WALL, OBS]:
                 return False
         else:
-            if self.map[y-1*(y-j)/abs(y-j)][i+(x-i)/abs(x-i)] in [WALL, OBS] or \
-                self.map[y-2*(y-j)/abs(y-j)][x-(x-i)/abs(x-i)] in [WALL, OBS]:
+            if self.map[y-1*(y-j)//abs(y-j)][i+(x-i)//abs(x-i)] in [WALL, OBS] or \
+                self.map[y-2*(y-j)//abs(y-j)][x-(x-i)//abs(x-i)] in [WALL, OBS]:
                 return False
         return True
 
@@ -87,8 +87,8 @@ class Player:
     def directToCell(self, id, target):
         # dijkstra heap
 
-        d = np.full((self.n, self.m), int('infinity'))
-        # d = [[int('infinity') for j in range(self.m)] for i in range(self.n)]
+        d = np.full((self.n, self.m),  INF)
+        # d = [[ INF for j in range(self.m)] for i in range(self.n)]
         pre = np.full((self.n, self.m), [-1, -1])
         #pre = [[ [-1, -1] for j in range(self.m)] for i in range(self.n)]
         u, v = self.cell[id]
