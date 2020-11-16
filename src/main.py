@@ -24,10 +24,10 @@ if __name__ == "__main__":
 
     for turn in range(20):
         seeker.next_move()
-        hider.next_move()
+        #hider.next_move()
 
-        if hider.isAnnouce():
-            seeker.updateAnnouce(hider.getAnnouce())
+        # if hider.isAnnouce():
+        #     seeker.updateAnnouce(hider.getAnnouce())
 
-            print(hider.getAnnouce())
+        #     print(hider.getAnnouce())
         

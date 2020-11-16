@@ -1,3 +1,3 @@
 EMPTY, WALL, HIDER, SEEKER, OBS, ANNOUNCE, VERIFIED = [0, 1, 2, 3, 4, 5, 6]
-DIR = [(-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1)]
+DIR = [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1]]
 LEFT_UP, UP, RIGHT_UP, RIGHT, DOWN_RIGHT, DOWN, LEFT_DOWN, LEFT = DIR
