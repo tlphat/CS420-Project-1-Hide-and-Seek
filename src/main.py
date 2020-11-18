@@ -10,7 +10,7 @@ if __name__ == "__main__":
 
     gui = Gui()
     game = Game(gui)
-    game.read_input("1.5")
+    game.read_input("2.4")
     hider = Hider(game.getMap(), game.getSize(), game.getRangeHider(), game.getHiderLocation(), gui)
     seeker = Seeker(game.getMap(), game.getSize(), game.getRangeSeeker(), game.getSeekerLocation(), gui)
 
@@ -41,16 +41,22 @@ if __name__ == "__main__":
                seeker.updateHider(hider.cell[hide][0], hider.cell[hide][1])
         
         if seeker.hiderFound == len(hider.cell):
+            print()
+            print()
             print('Seeker win')
             print('Turn: ', turn)
+            print("Has found: ", seeker.hiderFound)
             print('Seeker move: ', seeker.move)
             print('Hider move: ', hider.move)
             print(seeker.print_map())
             exit(0)
 
+    print()
+    print()
     print('Seeker loose')
     print('Seeker move: ', seeker.move)
     print('Hider move: ', hider.move)
     print("Has found: ", seeker.hiderFound)
+    print(seeker.print_map())
     # gui.visualize()
         

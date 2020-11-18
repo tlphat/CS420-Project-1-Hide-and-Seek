@@ -76,7 +76,6 @@ class Seeker(Player):
         for i in range(max(0, obj[0] - self.range), min(self.n-1, obj[0] + self.range)):
             for j in range(max(0, obj[1] - self.range), min(self.m-1, obj[1] + self.range)):
                 if self.map[i][j] == EMPTY:
-                    self.map[i][j] = VERIFIED
                     self.heuristic[i][j] = float('infinity')
 
     def minHeuristicInRange(self):
@@ -85,6 +84,9 @@ class Seeker(Player):
         obj = self.cell[0]
         for i in range(self.n):
             for j in range(self.m):
+                if self.map[i][j] == VERIFIED:
+                    continue
+
                 if u != None and self.heuristic[i][j] == curH and mahattan(obj[0], obj[1], u, v) > mahattan(obj[0], obj[1], i, j):
                     u, v = i, j
 
@@ -94,8 +96,8 @@ class Seeker(Player):
         return u, v
                 
     def next_move(self):
-
-        self.map[self.cell[0][0]][self.cell[0][1]] = VERIFIED
+        if self.map[self.cell[0][0]][self.cell[0][1]] != HIDER:
+            self.map[self.cell[0][0]][self.cell[0][1]] = VERIFIED
 
         # print()
         # print()
@@ -111,15 +113,15 @@ class Seeker(Player):
                 if not self.directToCell(0, self.hider[k]):
                     self.hider[k] = None
                 else:
+                    self.move += 1
+                    self.map[self.cell[0][0]][self.cell[0][1]] = SEEKER
                     # print('Goto hider', self.hider[k])
                     if self.cell[0] == self.hider[k]:
                         self.hider.remove(self.hider[k])
                         self.hiderFound += 1
+                        self.map[self.cell[0][0]][self.cell[0][1]] = HIDER
                         print('Find hider: ', self.cell[0])
                     
-                    self.move += 1
-                    self.map[self.cell[0][0]][self.cell[0][1]] = SEEKER
-
                     return
 
         # print('Not find hider yet')
@@ -137,7 +139,9 @@ class Seeker(Player):
                     self.annouce[k] = None
                 else:                    
                     self.move += 1
-                    self.map[self.cell[0][0]][self.cell[0][1]] = SEEKER
+
+                    if self.map[self.cell[0][0]][self.cell[0][1]] != HIDER:
+                        self.map[self.cell[0][0]][self.cell[0][1]] = SEEKER
 
                     if self.cell[0] == self.annouce[k]:
                         self.annouce[k] = None
@@ -170,7 +174,8 @@ class Seeker(Player):
                 exit(0)
             self.move += 1
 
-            self.map[self.cell[0][0]][self.cell[0][1]] = SEEKER
+            if self.map[self.cell[0][0]][self.cell[0][1]] != HIDER:
+                self.map[self.cell[0][0]][self.cell[0][1]] = SEEKER
             return
         
         print('neighbor none')
