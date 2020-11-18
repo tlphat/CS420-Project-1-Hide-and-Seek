@@ -13,6 +13,7 @@ class Gui:
         self.__n = self.__m = self.__map = None
         self.__moves = []
         self.__announce = []
+        self.__observable = []
         # display config
         self.__cell_size = CELL_SIZE
         self.__move_id = -1
@@ -26,6 +27,8 @@ class Gui:
         self.__img_seeker = ImageTk.PhotoImage(Image.open("../asset/seeker.jpg"))
         self.__img_obstacle = ImageTk.PhotoImage(Image.open("../asset/obstacle.jpg"))
         self.__img_announce = ImageTk.PhotoImage(Image.open("../asset/announce.jpg"))
+        self.__img_observable = ImageTk.PhotoImage(Image.open("../asset/observable.jpg"))
+        self.__img_emptycell = ImageTk.PhotoImage(Image.open("../asset/emptycell.jpg"))
 
     def init_canvas(self):
         self.__windows_root = tkinter.Tk()
@@ -63,6 +66,7 @@ class Gui:
                     self.__game_canvas.create_image(y, x, image = self.__img_hider, anchor = "nw")
                 elif self.__map[i][j] == 3:
                     self.__my_seeker = self.__game_canvas.create_image(y, x, image = self.__img_seeker, anchor = "nw")
+                    self.__coord = (x, y)
                 elif self.__map[i][j] == 4:
                     self.__game_canvas.create_image(y, x, image = self.__img_obstacle, anchor = "nw")
 
@@ -71,6 +75,26 @@ class Gui:
         x, y = self.__moves[self.__move_id]
         print("hello " + str(x) + " " + str(y))
         self.__game_canvas.move(self.__my_seeker, y * self.__cell_size, x * self.__cell_size)
+
+    # def move(self):
+    #     self.__move_id += 1
+    #     if (self.__move_id != 0):
+    #         print(self.__move_id - 1)
+    #         prev_obs = self.__observable[self.__move_id - 1]
+    #         for x, y in prev_obs:
+    #             x = self.__cell_size * (x + 1) + 1
+    #             y = self.__cell_size * (y + 1) + 1
+    #             self.__game_canvas.create_image(y, x, image = self.__img_emptycell, anchor = "nw")
+    #     cur_obs = self.__observable[self.__move_id]
+    #     for x, y in cur_obs:
+    #         x = self.__cell_size * (x + 1) + 1
+    #         y = self.__cell_size * (y + 1) + 1
+    #         self.__game_canvas.create_image(y, x, image = self.__img_observable, anchor = "nw")
+    #     dx, dy = self.__moves[self.__move_id]
+    #     x, y = self.__coord
+    #     x, y = x + dx * self.__cell_size, y + dy * self.__cell_size
+    #     self.__coord = x, y
+    #     self.__game_canvas.create_image(y, x, image = self.__img_seeker, anchor = "nw")
 
     def fade_in_announce(self):
         self.__announce_id += 1
@@ -110,6 +134,9 @@ class Gui:
 
     def display_announce(self, p):
         self.__announce.append((p[0][0], p[0][1]))
+
+    def append_observable(self, observe_list):
+        self.__observable.append(observe_list)
 
     def read_config(self, map):
         self.__map = copy.deepcopy(map)

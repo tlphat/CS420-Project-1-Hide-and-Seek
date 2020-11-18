@@ -38,29 +38,37 @@ class Player:
     def isInsideMap(self, i, j):
         return (0 <= i and i < self.n and 0 <= j and j < self.m)
 
+    def observe_second_layer(self, x, y, i, j):
+        if abs(x - i) == 2:
+            tx = (x + i) // 2
+            return not (self.map[tx][j] in [WALL, OBS])
+        else:
+            ty = (y + j) // 2
+            return not (self.map[i][ty] in [WALL, OBS])
+
     def observe_horizontal(self, x, y, i, j):
-        # x, y = self.cell[id][0], self.cell[id][1]
         for k in range(min(y, j), max(y, j)):
             if self.map[x][k] in [WALL, OBS]:
                 return False
         return True
 
     def observe_vertical(self, x, y, i, j):
-        # x, y = self.cell[id][0], self.cell[id][1]
         for k in range(min(x, i), max(x, i)):
             if self.map[k][y] in [WALL, OBS]:
                 return False
         return True
 
     def observe_diagonal(self, x, y, i, j):
-        # x, y = self.cell[id][0], self.cell[id][1]
         for k in range(min(i, x) + 1, max(i, x)):
-            if self.map[k][min(j, y) + k - min(x, i)] in [WALL, OBS]:
-                return False
+            if (x - i) * (y - j) > 0:
+                if self.map[k][min(j, y) + k - min(x, i)] in [WALL, OBS]:
+                    return False
+            else:
+                if self.map[k][max(j, y) + min(x, i)  - k] in [WALL, OBS]:
+                    return False
         return True
 
     def observe_odd_cases(self, x, y, i, j):
-        # x, y = self.cell[id][0], self.cell[id][1]
         if abs(x - i) == 3:
             if self.map[x-1*(x-i)//abs(x-i)][j+(y-j)//abs(y-j)] in [WALL, OBS] or \
                 self.map[x-2*(x-i)//abs(x-i)][y-(y-j)//abs(y-j)] in [WALL, OBS]:
@@ -77,14 +85,14 @@ class Player:
             return False
         if (abs(i - obj[0]) + abs(j - obj[1]) < 2):
             return True
-        if (abs(i - obj[0]) + abs(j - obj[1]) == 3):
-            return True
         if (i == obj[0]):
             return self.observe_horizontal(u, v, i, j)
         if (j == obj[1]):
             return self.observe_vertical(u, v, i, j)
         if (abs(obj[0] - i) == abs(obj[1] - j)):
             return self.observe_diagonal(u, v, i, j)
+        if (abs(i - obj[0]) + abs(j - obj[1]) == 3):
+            return self.observe_second_layer(u, v, i, j)
         return self.observe_odd_cases(u, v, i, j)
 
     def updateLocation(self, id, i , j):

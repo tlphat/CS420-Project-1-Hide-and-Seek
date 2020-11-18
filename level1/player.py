@@ -13,15 +13,24 @@ class Player:
             return False
         if (abs(i - x) + abs(j - y) < 2):
             return True
-        if (abs(i - x) + abs(j - y) == 3):
-            return True
         if (i == x):
             return self.observe_horizontal(id, i, j)
         if (j == y):
             return self.observe_vertical(id, i, j)
         if (abs(x - i) == abs(y - j)):
             return self.observe_diagonal(id, i, j)
+        if (abs(i - x) + abs(j - y) == 3):
+            return self.observe_second_layer(i, j)
         return self.observe_odd_cases(id, i, j)
+
+    def observe_second_layer(self, i, j):
+        x, y = self.cur_x, self.cur_y
+        if abs(x - i) == 2:
+            tx = (x + i) // 2
+            return not (self.map[tx][j] in [WALL, OBS])
+        else:
+            ty = (y + j) // 2
+            return not (self.map[i][ty] in [WALL, OBS])
 
     def observe_horizontal(self, id, i, j):
         x, y = self.cur_x, self.cur_y
@@ -40,8 +49,12 @@ class Player:
     def observe_diagonal(self, id, i, j):
         x, y = self.cur_x, self.cur_y
         for k in range(min(i, x) + 1, max(i, x)):
-            if self.map[k][min(j, y) + k - min(x, i)] in [WALL, OBS]:
-                return False
+            if (x - i) * (y - j) > 0:
+                if self.map[k][min(j, y) + k - min(x, i)] in [WALL, OBS]:
+                    return False
+            else:
+                if self.map[k][max(j, y) + min(x, i)  - k] in [WALL, OBS]:
+                    return False
         return True
 
     def observe_odd_cases(self, id, i, j):

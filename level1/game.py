@@ -53,6 +53,7 @@ class Game:
                 print("Seeker move: {:d}, {:d}".format(x, y))
                 self.__point -= int(x != 0 or y != 0)
                 self.__gui.append_move(x, y)
+                self.__gui.append_observable(self.__seeker.obs_list)
             elif self.__hider_announce_turn():
                 x, y = self.__hider.announce()
                 print("Hider announce: {:d}, {:d}".format(x, y))
@@ -62,3 +63,6 @@ class Game:
         self.__point += 20 * int(self.__winner == HIDER)
         self.__gui.visualize()
         print("Point: {:d}".format(self.__point))
+
+    def check_observable(self, i, j):
+        print(self.__seeker.is_observable(i, j))
