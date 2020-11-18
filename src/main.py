@@ -50,6 +50,7 @@ if __name__ == "__main__":
             print('Seeker move: ', seeker.move)
             print('Hider move: ', hider.move)
             print(seeker.print_map())
+            gui.visualize()
             exit(0)
 
     print()
@@ -59,5 +60,5 @@ if __name__ == "__main__":
     print('Hider move: ', hider.move)
     print("Has found: ", seeker.hiderFound)
     print(seeker.print_map())
-    # gui.visualize()
+    gui.visualize()
         

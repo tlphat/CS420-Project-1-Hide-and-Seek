@@ -14,7 +14,7 @@ class Gui:
         self.__announce = []
         # display config
         self.__cell_size = 40
-        self.__move_id = -1
+        self.__move_id = self.__announce_id = -1
         self.__time = 1000
         self.__announce_signal = None
         self.__time_delay = 500
@@ -71,7 +71,8 @@ class Gui:
         self.__game_canvas.move(self.__my_seeker, y * self.__cell_size, x * self.__cell_size)
 
     def fade_in_announce(self):
-        i, j = self.__announce[(self.__move_id + 1) // 5]
+        self.__announce_id += 1
+        i, j = self.__announce[self.__announce_id]
         x = self.__cell_size * (i + 1) + 1
         y = self.__cell_size * (j + 1) + 1
         self.__announce_signal = self.__game_canvas.create_image(y, x, image = self.__img_announce, anchor = "nw")
@@ -79,21 +80,34 @@ class Gui:
     def fade_out_announce(self):
         self.__game_canvas.delete(self.__announce_signal)
 
+    def call_back(self):
+        i, j = (0, 0)
+        while True:
+            if i >= len(self.__moves) and j >= len(self.__announce):
+                break
+            if i < len(self.__moves):
+                self.__game_canvas.after(self.__time_delay * (2 * i + 1), self.move)
+                i += 1
+            if j < len(self.__announce):
+                self.__game_canvas.after(10 * (j + 1) * self.__time_delay, self.fade_in_announce)
+                self.__game_canvas.after((10 * (j + 1) + 1) * self.__time_delay, self.fade_out_announce)
+                j += 1
+
     def move_process(self):
         time = self.__time_delay
         for _ in range(len(self.__moves)):
-            if time % (5 * self.__time_delay) == 4 * self.__time_delay:
+            if time % (10 * self.__time_delay) == 9 * self.__time_delay:
                 self.__game_canvas.after(time, self.fade_in_announce)
-            if time % (5 * self.__time_delay) == 0:
-                self.__game_canvas.after(time, self.move)
                 self.__game_canvas.after(time, self.fade_out_announce)
+            #if time % (10 * self.__time_delay) == 0:
+            self.__game_canvas.after(time, self.move)
             time += self.__time_delay
     
     def append_move(self, dx, dy):
         self.__moves.append((dx, dy))
 
     def display_announce(self, p):
-        self.__announce.append(p)
+        self.__announce.append((p[0][0], p[0][1]))
 
     def read_config(self, map):
         self.__map = copy.deepcopy(map)
@@ -106,5 +120,5 @@ class Gui:
 
     def visualize(self):
         self.draw_map()
-        self.move_process()
+        self.call_back()
         self.__windows_root.mainloop()
