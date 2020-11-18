@@ -1,94 +1,64 @@
 from defines import *
-import copy
+from seeker import Seeker
+from hider import Hider
 
 class Game:
     def __init__(self, gui):
-        self.map = self.n = self.m = self.seeker = None
-        self.seeker = []
-        self.hider = []
-        self.rangeSeek = 3
-        self.rangeHide = 2
-        self.gui = gui
+        self.__map = self.__n = self.__m = None
+        self.__range_seek = RANGE_SEEKER
+        self.__range_hide = RANGE_HIDER
+        self.__gui = gui
 
-    # <ReadInput>----------------------------------------
+    def read_input(self, map_name):
+        fin = open("../map/" + map_name + ".txt", "r")
+        self.__n, self.__m = [int(x) for x in fin.readline().split(" ")]
+        self.__read_map(fin)
+        self.__read_obstacles(fin)
+        self.__gui.read_config(self.__map)
+        self.__init_players()
+        fin.close()
 
-    def read_map(self, fin):
-        self.map = [[int(x) for x in fin.readline().split(" ")] for i in range(self.n)]
-    
-    def init_map(self):
-        for i in range(self.n):
-            for j in range(self.m):
-                if (self.map[i][j] == SEEKER):
-                    self.seeker.append([i, j])
-                    self.map[i][j] = EMPTY
-                if (self.map[i][j] == HIDER):
-                    self.hider.append([i, j])
-                    self.map[i][j] = EMPTY
+    def __init_players(self):
+        self.__seeker = Seeker(self.__map, self.__n, self.__m, self.__range_seek)
+        self.__hider = Hider(self.__map, self.__n, self.__m, self.__range_hide)
 
-    def read_obstacles(self, fin):
+    def __read_map(self, fin):
+        self.__map = [[int(x) for x in fin.readline().split(" ")] for i in range(self.__n)]
+
+    def __read_obstacles(self, fin):
         line = fin.readline()
         while (line != ""):
-            # read coordinates of top left and bottom right of the rectangle obstacles
             x_tl, y_tl, x_br, y_br = [int(x) for x in line.split(" ")]
             for i in range(x_tl, x_br):
                 for j in range(y_tl, y_br):
-                    self.map[i][j] = OBS
+                    self.__map[i][j] = OBS
             line = fin.readline()
 
-    def read_input(self, map_name):
-        with open("../map/" + map_name + ".txt", "r") as fin:
-            self.n, self.m = [int(x) for x in fin.readline().split(" ")]
-            
-            self.read_map(fin)
-            self.read_obstacles(fin)
-            self.gui.read_config(self.map)
-            self.init_map()
+    def is_end(self):
+        return self.__seeker.meet(self.__hider)
 
-            fin.close()
-    
-    # </ReadInput>-----------------------------------------
+    def __is_seeker_turn(self):
+        return self.__turn % 2 == 1
 
-    # <GetterAndSetter>------------------------------------
+    def __hider_announce_turn(self):
+        return (self.__turn // 2) % 5 == 0
+        #return self.__hider.should_anounce()
 
-    def getMap(self):
-        return copy.deepcopy(self.map)
-    
-    def getSize(self):
-        return self.n, self.m
-    
-    def getRangeHider(self):
-        return self.rangeHide
-
-    def getRangeSeeker(self):
-        return self.rangeSeek
-
-    def getSeekerLocation(self):
-        return self.seeker
-
-    def getHiderLocation(self):
-        return self.hider
-
-    def setHider(self, id, x, y):
-        self.hider[id] = [x, y]
-
-    def setSeeker(self, id, x, y):
-        self.seeker[id] = [x, y]
-    
-    # </GetterAndSetter>------------------------------------
-
-    def isMeet(self, x, y):
-        for i in self.hider:
-            if i == [x, y]:
-                return True
-        return False
-
-    def printMap(self):
-        for i in range(self.n):
-            for j in range(self.m):
-                if [i, j] in self.hider:
-                    print("{:d}".format(HIDER), end = " ")
-                elif [i, j] in self.seeker:
-                    print("{:d}".format(SEEKER), end = " ")
-                else:  
-                    print("{:d}".format(self.map[i][j]), end = " ")
-            print()
+    def operate(self):
+        self.__turn, self.__point = (1, 0)
+        self.__winner = HIDER
+        while not self.is_end() and True:
+            if self.__is_seeker_turn():
+                x, y = self.__seeker.move((self.__turn + 1) // 2)
+                print("Seeker move: {:d}, {:d}".format(x, y))
+                self.__point -= int(x != 0 or y != 0)
+                self.__gui.append_move(x, y)
+            elif self.__hider_announce_turn():
+                x, y = self.__hider.announce()
+                print("Hider announce: {:d}, {:d}".format(x, y))
+                self.__seeker.signal_announce(x, y)
+                self.__gui.display_announce((x, y))
+            self.__turn += 1
+        self.__point += 20 * int(self.__winner == HIDER)
+        self.__gui.visualize()
+        print("Point: {:d}".format(self.__point))
