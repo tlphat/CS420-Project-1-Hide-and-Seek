@@ -10,7 +10,7 @@ if __name__ == "__main__":
 
     gui = Gui()
     game = Game(gui)
-    game.read_input("sample_map")
+    game.read_input("1.5")
     hider = Hider(game.getMap(), game.getSize(), game.getRangeHider(), game.getHiderLocation(), gui)
     seeker = Seeker(game.getMap(), game.getSize(), game.getRangeSeeker(), game.getSeekerLocation(), gui)
 
@@ -45,11 +45,12 @@ if __name__ == "__main__":
             print('Turn: ', turn)
             print('Seeker move: ', seeker.move)
             print('Hider move: ', hider.move)
+            print(seeker.print_map())
             exit(0)
 
     print('Seeker loose')
     print('Seeker move: ', seeker.move)
     print('Hider move: ', hider.move)
-    print("Has found: ", seeker.hiderFound )
+    print("Has found: ", seeker.hiderFound)
     # gui.visualize()
         

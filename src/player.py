@@ -15,7 +15,22 @@ class Player:
     def print_map(self): # use for debug
         for row in self.map:
             for cell in row:
-                print("{:d}".format(cell), end = " ")
+                # print("{:d}".format(cell), end = " ")
+                
+                if cell in [WALL, OBS]:
+                    print(cell, end = " ")
+                elif cell == SEEKER:
+                    print('S', end = " ")    
+                elif cell == HIDER:
+                    print('H', end = " ")
+                elif cell == VERIFIED:
+                    print('-', end = " ")
+                elif cell == IMPOSSIBLE:
+                    print('X', end = " ")
+                else:
+                    print(' ', end = " ")
+                
+                
             print()
 
     def isInsideMap(self, i, j):
@@ -93,8 +108,6 @@ class Player:
         # dijkstra heap
 
         d = np.full((self.n, self.m), float('infinity'))
-        # d = [[int('infinity') for j in range(self.m)] for i in range(self.n)]
-        #pre = np.full((self.n, self.m), [-1, -1])
         pre = [[ [-1, -1] for j in range(self.m)] for i in range(self.n)]
         u, v = self.cell[id]
         d[u][v] = 0
@@ -113,10 +126,7 @@ class Player:
             for direct in DIR:
                 uu, vv = u + direct[0], v + direct[1]
 
-                if not self.isInsideMap(uu, vv):
-                    continue
-
-                if not self.isInsideRange(u, v, uu, vv) or self.map[uu][vv] in [OBS, WALL]:
+                if not self.isInsideMap(uu, vv) or not self.isInsideRange(u, v, uu, vv) or self.map[uu][vv] in [OBS, WALL]:
                     continue
 
                 if du + 1 < d[uu][vv]:
@@ -132,12 +142,11 @@ class Player:
         if pre[u][v] == [-1, -1]:
             return False
 
-
         while pre[u][v] != self.cell[id]:
             # print('pre[',u,'][',v,']=',pre[u][v])
             u, v = pre[u][v]
 
-        print('Direct:', u, v)
+        # print('Direct:', u, v)
 
         self.movingByDirect(id, [u - self.cell[id][0], v - self.cell[id][1]])
 

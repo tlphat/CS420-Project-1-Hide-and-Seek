@@ -1,5 +1,6 @@
 from defines import *
 import copy
+import numpy as np
 
 class Game:
     def __init__(self, gui):
@@ -14,6 +15,7 @@ class Game:
 
     def read_map(self, fin):
         self.map = [[int(x) for x in fin.readline().split(" ")] for i in range(self.n)]
+        print('shape: ', np.shape(self.map))
     
     def init_map(self):
         for i in range(self.n):
@@ -30,6 +32,8 @@ class Game:
         while (line != ""):
             # read coordinates of top left and bottom right of the rectangle obstacles
             x_tl, y_tl, x_br, y_br = [int(x) for x in line.split(" ")]
+            x_br += 1
+            y_br += 1
             for i in range(x_tl, x_br):
                 for j in range(y_tl, y_br):
                     self.map[i][j] = OBS
@@ -37,7 +41,7 @@ class Game:
 
     def read_input(self, map_name):
         with open("../map/" + map_name + ".txt", "r") as fin:
-            self.n, self.m = [int(x) for x in fin.readline().split(" ")]
+            self.n, self.m = map(int, fin.readline().split(' '))
             
             self.read_map(fin)
             self.read_obstacles(fin)

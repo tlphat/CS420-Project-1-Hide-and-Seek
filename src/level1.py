@@ -25,6 +25,7 @@ class Seeker(Player):
         self.heuristic = np.zeros((self.n, self.m))
 
         self.initHeuristic()
+        self.buildHeuristic()
         self.hiderFound = 0
     
     def calcHeuristic(self, i, j):
@@ -34,8 +35,35 @@ class Seeker(Player):
             if not self.isInsideMap(u, v) or self.map[u][v] != EMPTY or self.heuristic[i][j] == float('infinity'):
                 calc += 1
         return calc
-
+    
     def initHeuristic(self):
+        d = np.full((self.n, self.m), float('infinity'))
+        pre = [[ [-1, -1] for j in range(self.m)] for i in range(self.n)]
+        u, v = self.cell[0]
+        d[u][v] = 0
+        pq = [(0, [u, v])]
+
+        while len(pq) > 0:
+            du, [u, v] = heapq.heappop(pq)
+            if du != d[u][v]:
+                continue
+            for direct in DIR:
+                uu, vv = u + direct[0], v + direct[1]
+                if not self.isInsideMap(uu, vv) or not self.isInsideRange(u, v, uu, vv) or self.map[uu][vv] in [OBS, WALL]:
+                    continue
+                if du + 1 < d[uu][vv]:
+                    d[uu][vv] = du + 1
+                    pre[uu][vv] = [u, v]
+                    #print('pre[',uu,'][',vv,'] =',pre[uu][vv])
+                    heapq.heappush(pq, (d[uu][vv], [uu, vv]))
+        
+        for i in range(self.n):
+            for j in range(self.m):
+                if d[i][j] == float('infinity') and self.map[i][j] not in [OBS, WALL]:
+                    self.heuristic[i][j] = float('infinity')
+                    self.map[i][j] = IMPOSSIBLE
+
+    def buildHeuristic(self):
         for i in range(self.n):
             for j in range(self.m):
                 if self.map[i][j] == WALL or self.map[i][j] == OBS or self.cell[0] == [i, j] or self.heuristic[i][j] == float('infinity'):
@@ -66,6 +94,9 @@ class Seeker(Player):
         return u, v
                 
     def next_move(self):
+
+        self.map[self.cell[0][0]][self.cell[0][1]] = VERIFIED
+
         # print()
         # print()
         # print('start in next move:',self.cell[0])
@@ -82,10 +113,13 @@ class Seeker(Player):
                 else:
                     # print('Goto hider', self.hider[k])
                     if self.cell[0] == self.hider[k]:
-                        self.hider[k] = None
+                        self.hider.remove(self.hider[k])
                         self.hiderFound += 1
                         print('Find hider: ', self.cell[0])
+                    
                     self.move += 1
+                    self.map[self.cell[0][0]][self.cell[0][1]] = SEEKER
+
                     return
 
         # print('Not find hider yet')
@@ -103,6 +137,7 @@ class Seeker(Player):
                     self.annouce[k] = None
                 else:                    
                     self.move += 1
+                    self.map[self.cell[0][0]][self.cell[0][1]] = SEEKER
 
                     if self.cell[0] == self.annouce[k]:
                         self.annouce[k] = None
@@ -118,7 +153,7 @@ class Seeker(Player):
         else:
             # print('Mark all neighbor are empty')
             self.fillHeuristic()
-            self.initHeuristic()
+            self.buildHeuristic()
 
         # print('Start to find min neighbor heuristic')
 
@@ -129,9 +164,13 @@ class Seeker(Player):
         if target != [None, None]:
             # print('neighbor heuristic not none:', target)
             if not self.directToCell(0, target):
-                print('You never want this sentence appear')
+                self.map[self.cell[0][0]][self.cell[0][1]] = SEEKER
+                print('You never want this sentence appear:', target)
+                print(self.print_map())
                 exit(0)
             self.move += 1
+
+            self.map[self.cell[0][0]][self.cell[0][1]] = SEEKER
             return
         
         print('neighbor none')
