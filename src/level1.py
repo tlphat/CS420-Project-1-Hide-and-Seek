@@ -28,6 +28,12 @@ class Seeker(Player):
         self.buildHeuristic()
         self.hiderFound = 0
     
+    def printHeuristic(self):
+        for row in self.heuristic:
+            for cell in row:
+                print(cell, end = " ")
+            print()
+    
     def calcHeuristic(self, i, j):
         calc = 0
         for dir in DIR:
@@ -75,8 +81,10 @@ class Seeker(Player):
         obj = self.cell[0]
         for i in range(max(0, obj[0] - self.range), min(self.n-1, obj[0] + self.range)):
             for j in range(max(0, obj[1] - self.range), min(self.m-1, obj[1] + self.range)):
-                if self.map[i][j] == EMPTY:
+                if self.map[i][j] == EMPTY and self.isInsideRange(obj[0], obj[1], i, j):
                     self.heuristic[i][j] = float('infinity')
+                    if self.map[i][j] != HIDER:
+                        self.map[i][j] = VERIFIEDHIHI
 
     def minHeuristicInRange(self):
         curH = float('infinity')
@@ -84,7 +92,7 @@ class Seeker(Player):
         obj = self.cell[0]
         for i in range(self.n):
             for j in range(self.m):
-                if self.map[i][j] == VERIFIED:
+                if self.map[i][j] == VERIFIED or self.map[i][j] == VERIFIEDHIHI:
                     continue
 
                 if u != None and self.heuristic[i][j] == curH and mahattan(obj[0], obj[1], u, v) > mahattan(obj[0], obj[1], i, j):
@@ -115,6 +123,9 @@ class Seeker(Player):
                 else:
                     self.move += 1
                     self.map[self.cell[0][0]][self.cell[0][1]] = SEEKER
+
+                    self.fillHeuristic()
+                    self.buildHeuristic()
                     # print('Goto hider', self.hider[k])
                     if self.cell[0] == self.hider[k]:
                         self.hider.remove(self.hider[k])
@@ -139,6 +150,9 @@ class Seeker(Player):
                     self.annouce[k] = None
                 else:                    
                     self.move += 1
+
+                    self.fillHeuristic()
+                    self.buildHeuristic()
 
                     if self.map[self.cell[0][0]][self.cell[0][1]] != HIDER:
                         self.map[self.cell[0][0]][self.cell[0][1]] = SEEKER

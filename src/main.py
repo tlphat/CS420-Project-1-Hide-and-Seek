@@ -10,7 +10,7 @@ if __name__ == "__main__":
 
     gui = Gui()
     game = Game(gui)
-    game.read_input("2.4")
+    game.read_input("1.1")
     hider = Hider(game.getMap(), game.getSize(), game.getRangeHider(), game.getHiderLocation(), gui)
     seeker = Seeker(game.getMap(), game.getSize(), game.getRangeSeeker(), game.getSeekerLocation(), gui)
 
@@ -37,6 +37,7 @@ if __name__ == "__main__":
         for hide in range(len(hider.cell)):
            if check[hide] == 0 and seeker.isInsideRange(seeker.cell[0][0], seeker.cell[0][1], hider.cell[hide][0], hider.cell[hide][1]):
                check[hide] = 1
+               print('I am at: ', seeker.cell[0])
                print('I can see hider at:', hider.cell[hide])
                seeker.updateHider(hider.cell[hide][0], hider.cell[hide][1])
         

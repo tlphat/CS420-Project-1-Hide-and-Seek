@@ -25,6 +25,8 @@ class Player:
                     print('H', end = " ")
                 elif cell == VERIFIED:
                     print('-', end = " ")
+                elif cell ==VERIFIEDHIHI:
+                    print('.', end= " ")
                 elif cell == IMPOSSIBLE:
                     print('X', end = " ")
                 else:
