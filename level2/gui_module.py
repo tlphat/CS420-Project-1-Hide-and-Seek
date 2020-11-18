@@ -120,24 +120,7 @@ class Gui:
         self.init_canvas()
         self.init_image()
 
-    def call_back(self):
-        i, j = (0, 0)
-        while True:
-            if i >= len(self.__moves) and j >= len(self.__announce):
-                break
-            if i < len(self.__moves):
-                self.__game_canvas.after(self.__time_delay * (2 * i + 1), self.move)
-                i += 1
-            if j < len(self.__announce):
-                self.__game_canvas.after(10 * (j + 1) * self.__time_delay, self.fade_in_announce)
-                self.__game_canvas.after((10 * (j + 1) + 1) * self.__time_delay, self.fade_out_announce)
-                j += 1
-
     def visualize(self):
         self.draw_map()
-<<<<<<< HEAD:level1/src/gui_module.py
-        #self.move_process()
-=======
->>>>>>> khoi:level2/src/gui_module.py
         self.call_back()
         self.__windows_root.mainloop()
