@@ -10,13 +10,9 @@ if __name__ == "__main__":
 
     gui = Gui()
     game = Game(gui)
-    game.read_input("1.1")
+    game.read_input("sample_map")
     hider = Hider(game.getMap(), game.getSize(), game.getRangeHider(), game.getHiderLocation(), gui)
     seeker = Seeker(game.getMap(), game.getSize(), game.getRangeSeeker(), game.getSeekerLocation(), gui)
-    
-    t = timeit.default_timer() - t
-
-    print(t)
 
     game.printMap()
     print('HIDER:')
@@ -24,18 +20,36 @@ if __name__ == "__main__":
     print('SEEKER:')
     print(seeker.getLocation(0))
 
+    check = [0 for i in range(len(hider.cell))]
+
     # print(seeker.heuristic)
 
-    seeker.cell.append([1, 16])
-
-    print(seeker.isInsideRange(1, 0, 17))
-
-    for turn in range(300):
-        seeker.next_move()
-        hider.next_move()
+    for turn in range(10000):
+        if turn % 2 == 1:
+            seeker.next_move()
+        else:
+            hider.next_move()
 
         if hider.isAnnouce():
             gui.display_announce(hider.getAnnouce())
             seeker.updateAnnouce(hider.getAnnouce())
-    gui.visualize()
+
+        for hide in range(len(hider.cell)):
+           if check[hide] == 0 and seeker.isInsideRange(seeker.cell[0][0], seeker.cell[0][1], hider.cell[hide][0], hider.cell[hide][1]):
+               check[hide] = 1
+               print('I can see hider at:', hider.cell[hide])
+               seeker.updateHider(hider.cell[hide][0], hider.cell[hide][1])
+        
+        if seeker.hiderFound == len(hider.cell):
+            print('Seeker win')
+            print('Turn: ', turn)
+            print('Seeker move: ', seeker.move)
+            print('Hider move: ', hider.move)
+            exit(0)
+
+    print('Seeker loose')
+    print('Seeker move: ', seeker.move)
+    print('Hider move: ', hider.move)
+    print("Has found: ", seeker.hiderFound )
+    # gui.visualize()
         

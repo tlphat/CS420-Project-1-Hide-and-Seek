@@ -10,6 +10,7 @@ class Player:
         self.turn = 0
         self.cell = location
         self.gui = gui
+        self.move = 0
 
     def print_map(self): # use for debug
         for row in self.map:
@@ -20,29 +21,29 @@ class Player:
     def isInsideMap(self, i, j):
         return (0 <= i and i < self.n and 0 <= j and j < self.m)
 
-    def observe_horizontal(self, id, i, j):
-        x, y = self.cell[id][0], self.cell[id][1]
+    def observe_horizontal(self, x, y, i, j):
+        # x, y = self.cell[id][0], self.cell[id][1]
         for k in range(min(y, j), max(y, j)):
             if self.map[x][k] in [WALL, OBS]:
                 return False
         return True
 
-    def observe_vertical(self, id, i, j):
-        x, y = self.cell[id][0], self.cell[id][1]
+    def observe_vertical(self, x, y, i, j):
+        # x, y = self.cell[id][0], self.cell[id][1]
         for k in range(min(x, i), max(x, i)):
             if self.map[k][y] in [WALL, OBS]:
                 return False
         return True
 
-    def observe_diagonal(self, id, i, j):
-        x, y = self.cell[id][0], self.cell[id][1]
+    def observe_diagonal(self, x, y, i, j):
+        # x, y = self.cell[id][0], self.cell[id][1]
         for k in range(min(i, x) + 1, max(i, x)):
             if self.map[k][min(j, y) + k - min(x, i)] in [WALL, OBS]:
                 return False
         return True
 
-    def observe_odd_cases(self, id, i, j):
-        x, y = self.cell[id][0], self.cell[id][1]
+    def observe_odd_cases(self, x, y, i, j):
+        # x, y = self.cell[id][0], self.cell[id][1]
         if abs(x - i) == 3:
             if self.map[x-1*(x-i)//abs(x-i)][j+(y-j)//abs(y-j)] in [WALL, OBS] or \
                 self.map[x-2*(x-i)//abs(x-i)][y-(y-j)//abs(y-j)] in [WALL, OBS]:
@@ -53,8 +54,8 @@ class Player:
                 return False
         return True
 
-    def isInsideRange(self, id, i, j):
-        obj = self.cell[id]
+    def isInsideRange(self, u, v, i, j):
+        obj = [u, v]
         if not(abs(i - obj[0]) <= self.range and abs(j - obj[1]) <= self.range):
             return False
         if (abs(i - obj[0]) + abs(j - obj[1]) < 2):
@@ -62,12 +63,12 @@ class Player:
         if (abs(i - obj[0]) + abs(j - obj[1]) == 3):
             return True
         if (i == obj[0]):
-            return self.observe_horizontal(id, i, j)
+            return self.observe_horizontal(u, v, i, j)
         if (j == obj[1]):
-            return self.observe_vertical(id, i, j)
+            return self.observe_vertical(u, v, i, j)
         if (abs(obj[0] - i) == abs(obj[1] - j)):
-            return self.observe_diagonal(id, i, j)
-        return self.observe_odd_cases(id, i, j)
+            return self.observe_diagonal(u, v, i, j)
+        return self.observe_odd_cases(u, v, i, j)
 
     def updateLocation(self, id, i , j):
         self.cell[id] = [i, j]
@@ -86,6 +87,9 @@ class Player:
     # <Direct> -----------------------------------------
 
     def directToCell(self, id, target):
+        if (self.cell[id] == target):
+            return True
+
         # dijkstra heap
 
         d = np.full((self.n, self.m), float('infinity'))
@@ -109,15 +113,10 @@ class Player:
             for direct in DIR:
                 uu, vv = u + direct[0], v + direct[1]
 
-                if len(self.cell) == 1:
-                    self.cell.append([u, v])
-                else:
-                    self.cell[1] = [u, v]
-
                 if not self.isInsideMap(uu, vv):
                     continue
 
-                if not self.isInsideRange(1, uu, vv) or self.map[uu][vv] in [OBS, WALL]:
+                if not self.isInsideRange(u, v, uu, vv) or self.map[uu][vv] in [OBS, WALL]:
                     continue
 
                 if du + 1 < d[uu][vv]:
@@ -135,7 +134,7 @@ class Player:
 
 
         while pre[u][v] != self.cell[id]:
-            print('pre[',u,'][',v,']=',pre[u][v])
+            # print('pre[',u,'][',v,']=',pre[u][v])
             u, v = pre[u][v]
 
         print('Direct:', u, v)
