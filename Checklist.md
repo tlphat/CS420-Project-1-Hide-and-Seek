@@ -1,10 +1,10 @@
 ## Tasks
 
 ### Level 1
-[ ] Handle disconnected state
-[ ] Allow non-graphic mode
-[ ] Test on large input
-[ ] Document
+- [ ] Handle disconnected state
+- [ ] Allow non-graphic mode
+- [ ] Test on large input
+- [ ] Document
 
 ### Level 2
 
