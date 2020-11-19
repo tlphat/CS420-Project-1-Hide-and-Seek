@@ -97,6 +97,16 @@ class Player:
 
     def updateLocation(self, id, i , j):
         self.cell[id] = [i, j]
+        obs = []
+        for x in range(i - 3, i + 4):
+            for y in range(j - 3, j + 4):
+                if x < 0 or x >= self.n or y < 0 or y >= self.m:
+                    continue
+                if self.map[x][y] in [WALL, OBS]:
+                    continue
+                if self.isInsideRange(i, j, x, y):
+                    obs.append((x, y))
+        self.gui.append_observable(obs)
 
     def getLocation(self, id):
         return self.cell[id]
