@@ -7,8 +7,13 @@ class Player:
         self.map = copy.deepcopy(map)
         self.cur_x = self.cur_y = None
 
+    def is_in_range(self, x, y):
+        return x >= 0 and x < self.n and y >= 0 and y < self.m
+
     def is_observable(self, i, j):
         x, y = self.cur_x, self.cur_y
+        if x == i and y == j:
+            return True
         if not(abs(i - x) <= self.obs_range and abs(j - y) <= self.obs_range):
             return False
         if (abs(i - x) + abs(j - y) < 2):

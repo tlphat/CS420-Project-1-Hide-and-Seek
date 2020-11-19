@@ -9,7 +9,7 @@
 - [ ] Observable range illustration
 
 ### Level 1
-- [ ] Handle disconnected state
+- [x] Handle disconnected state
 - [ ] Allow non-graphic mode
 - [ ] Test on large input
 - [ ] Document

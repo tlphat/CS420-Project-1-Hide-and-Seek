@@ -29,13 +29,10 @@ class Game:
         line = fin.readline()
         while (line != ""):
             x_tl, y_tl, x_br, y_br = [int(x) for x in line.split(" ")]
-            for i in range(x_tl, x_br):
-                for j in range(y_tl, y_br):
+            for i in range(x_tl, x_br + 1):
+                for j in range(y_tl, y_br + 1):
                     self.__map[i][j] = OBS
             line = fin.readline()
-
-    def is_end(self):
-        return self.__seeker.meet(self.__hider)
 
     def __is_seeker_turn(self):
         return self.__turn % 2 == 1
@@ -47,21 +44,28 @@ class Game:
     def operate(self):
         self.__turn, self.__point = (1, 0)
         self.__winner = HIDER
-        while not self.is_end() and True:
+        while True:
+            if self.__seeker.meet(self.__hider):
+                self.__winner = SEEKER
+                break
+            if self.__seeker.visited_all():
+                break
             if self.__is_seeker_turn():
                 x, y = self.__seeker.move((self.__turn + 1) // 2)
-                print("Seeker move: {:d}, {:d}".format(x, y))
                 self.__point -= int(x != 0 or y != 0)
                 self.__gui.append_move(x, y)
                 self.__gui.append_observable(self.__seeker.obs_list)
             elif self.__hider_announce_turn():
                 x, y = self.__hider.announce()
-                print("Hider announce: {:d}, {:d}".format(x, y))
                 self.__seeker.signal_announce(x, y)
                 self.__gui.display_announce((x, y))
             self.__turn += 1
         self.__point += 20 * int(self.__winner == HIDER)
         self.__gui.visualize()
+        if (self.__winner == SEEKER):
+            print("Seeker win")
+        else:
+            print("Hider(s) win")
         print("Point: {:d}".format(self.__point))
 
     def check_observable(self, i, j):

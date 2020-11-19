@@ -7,5 +7,5 @@ import random
 if __name__ == "__main__":
     gui = Gui()
     game = Game(gui)
-    game.read_input("1.5")
+    game.read_input("1.4")
     game.operate()
