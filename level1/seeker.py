@@ -126,7 +126,7 @@ class Seeker(Player):
         for i in range(self.n):
             for j in range(self.m):
                 if self.hmap[i][j] == SIGNAL_HEURISTIC or self.map[i][j] not in [IMPOSSIBLE, VERIFIED, WALL, OBS]:
-                    comp_heuristic = self.hmap[i][j] * 10 - abs(self.cur_x - i) - abs(self.cur_y - j)
+                    comp_heuristic = self.hmap[i][j] * 100 - abs(self.cur_x - i) - abs(self.cur_y - j)
                     if comp_heuristic > cur_heuristic:
                         cur_heuristic = comp_heuristic
                         x, y = i, j
@@ -194,7 +194,7 @@ class Seeker(Player):
                 for j in range(y - 3, y + 4):
                     if not self.is_in_range(i, j):
                         continue
-                    if (self.map[i][j] not in [VERIFIED, WALL, OBS]):
+                    if (self.map[i][j] not in [IMPOSSIBLE, VERIFIED, WALL, OBS]):
                         self.hmap[i][j] = SIGNAL_HEURISTIC
 
     def __is_hearable(self, x, y):
