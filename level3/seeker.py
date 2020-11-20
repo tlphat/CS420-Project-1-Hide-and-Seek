@@ -3,8 +3,8 @@ from player import Player
 import copy
 
 class Seeker(Player):
-    def __init__(self, map, n, m, obs_range):
-        super().__init__(map, n, m, obs_range)
+    def __init__(self, map, n, m, obs_range, init_pos):
+        super().__init__(map, n, m, obs_range, init_pos)
         self.detected_coord = self.announce = None
         self.path = []
         self.radar_path = []

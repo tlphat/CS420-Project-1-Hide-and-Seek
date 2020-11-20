@@ -2,10 +2,10 @@ from defines import Config
 import copy
 
 class Player:
-    def __init__(self, map, n, m, obs_range):
+    def __init__(self, map, n, m, obs_range, init_pos):
         self.n, self.m, self.obs_range = n, m, obs_range
         self.map = copy.deepcopy(map)
-        self.cur_x = self.cur_y = None
+        self.cur_x, self.cur_y = init_pos
 
     def is_in_range(self, x, y):
         return x >= 0 and x < self.n and y >= 0 and y < self.m

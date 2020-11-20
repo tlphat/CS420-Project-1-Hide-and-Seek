@@ -4,9 +4,8 @@ import copy
 import random
 
 class Hider(Player):
-    def __init__(self, map, n, m, obs_range):
-        self.n, self.m, self.obs_range = n, m, obs_range
-        self.map = copy.deepcopy(map)
+    def __init__(self, map, n, m, obs_range, init_pos):
+        super().__init__(map, n, m, obs_range, init_pos)
         self.__navigate()
 
     def __navigate(self):
@@ -14,6 +13,12 @@ class Hider(Player):
             for j in range(self.m):
                 if self.map[i][j] == Config.HIDER:
                     self.cur_x, self.cur_y = i, j
+
+    def should_announced(self):
+        pass
+
+    def move(self, turn):
+        pass
 
     def announce(self):
         x, y = self.__randomize()
