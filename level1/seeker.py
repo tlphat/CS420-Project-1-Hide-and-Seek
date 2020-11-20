@@ -102,13 +102,10 @@ class Seeker(Player):
         for i in range(self.n):
             for j in range(self.m):
                 if self.hmap[i][j] == SIGNAL_HEURISTIC and self.map[i][j] != VERIFIED:
-                    return True
-        return False
+                    return False
+        return True
 
     def visited_all(self):
-        print("visited_cells: {:d}".format(self.__visited_cells))
-        print("possible_cells: {:d}".format(self.__possible_cells))
-        print(self.cur_x, self.cur_y)
         if not self.__should_give_up and self.__visited_cells == self.__possible_cells:
             self.__should_give_up = True
         return self.__should_give_up
@@ -129,7 +126,7 @@ class Seeker(Player):
         for i in range(self.n):
             for j in range(self.m):
                 if self.hmap[i][j] == SIGNAL_HEURISTIC or self.map[i][j] not in [IMPOSSIBLE, VERIFIED, WALL, OBS]:
-                    comp_heuristic = self.hmap[i][j] * 8 - abs(self.cur_x - i) - abs(self.cur_y - j)
+                    comp_heuristic = self.hmap[i][j] * 10 - abs(self.cur_x - i) - abs(self.cur_y - j)
                     if comp_heuristic > cur_heuristic:
                         cur_heuristic = comp_heuristic
                         x, y = i, j
@@ -137,6 +134,7 @@ class Seeker(Player):
 
     def __scan_verify(self):
         self.obs_list = []
+        self.__adj_non_empty = 0
         for i in range(self.cur_x - self.obs_range, self.cur_x + self.obs_range + 1):
             for j in range(self.cur_y - self.obs_range, self.cur_y + self.obs_range + 1):
                 if i < 0 or i >= self.n or j < 0 or j >= self.m:
@@ -150,6 +148,8 @@ class Seeker(Player):
                             self.map[i][j] = VERIFIED
                         if (i, j) != (self.cur_x, self.cur_y):
                             self.obs_list.append((i, j))
+                    elif self.map[i][j] in [OBS, WALL]:
+                        self.__adj_non_empty += 1
 
     def __find_path(self, fx, fy):
         queue = [(self.cur_x, self.cur_y, -1, -1)]
@@ -174,7 +174,6 @@ class Seeker(Player):
                 visited_map[nxt_x][nxt_y] = (x, y)
                 queue.append((nxt_x, nxt_y, x, y))
         if not can_find_path:
-            print("h {:d} {:d}".format(fx, fy))
             return []
         # trace back the path
         res = []

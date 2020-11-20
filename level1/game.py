@@ -41,7 +41,7 @@ class Game:
         return (self.__turn // 2) % 5 == 0
         #return self.__hider.should_anounce()
 
-    def operate(self):
+    def operate(self, is_debug):
         self.__turn, self.__point = (1, 0)
         self.__winner = HIDER
         while True:
@@ -61,7 +61,8 @@ class Game:
                 self.__gui.display_announce((x, y))
             self.__turn += 1
         self.__point += 20 * int(self.__winner == HIDER)
-        self.__gui.visualize()
+        if not is_debug:
+            self.__gui.visualize()
         if (self.__winner == SEEKER):
             print("Seeker win")
         else:

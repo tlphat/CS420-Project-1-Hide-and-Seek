@@ -10,12 +10,20 @@
 
 ### Level 1
 - [x] Handle disconnected state
-- [ ] Allow non-graphic mode
+- [x] Allow non-graphic mode
 - [ ] Test on large input
 - [ ] Document
 
 ### Level 2
+- [ ] Allow multiple players
+- [ ] Allow non-graphic mode
+- [ ] Test on large input
+- [ ] Optimize
+- [ ] Document
 
 ### Level 3
+- [ ] Prototype
+- [ ] Main fuctions
+- [ ] Document
 
 ### Level 4

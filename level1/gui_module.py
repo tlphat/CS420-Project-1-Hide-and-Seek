@@ -63,6 +63,7 @@ class Gui:
                 if self.__map[i][j] == 1:
                     self.__game_canvas.create_image(y, x, image = self.__img_wall, anchor = "nw")
                 elif self.__map[i][j] == 2:
+                    self.__pos_hider = (x, y)
                     self.__game_canvas.create_image(y, x, image = self.__img_hider, anchor = "nw")
                 elif self.__map[i][j] == 3:
                     self.__my_seeker = self.__game_canvas.create_image(y, x, image = self.__img_seeker, anchor = "nw")
@@ -84,6 +85,8 @@ class Gui:
             x = self.__cell_size * (x + 1) + 1
             y = self.__cell_size * (y + 1) + 1
             self.__game_canvas.create_image(y, x, image = self.__img_observable, anchor = "nw")
+        x, y = self.__pos_hider
+        self.__game_canvas.create_image(y, x, image = self.__img_hider, anchor = "nw")
         dx, dy = self.__moves[self.__move_id]
         x, y = self.__coord
         x, y = x + dx * self.__cell_size, y + dy * self.__cell_size
