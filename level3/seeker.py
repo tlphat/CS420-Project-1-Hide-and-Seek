@@ -16,6 +16,9 @@ class Seeker(Player):
         self.__should_give_up = False
         self.__scan_verify()
 
+    def update_num_hiders(self, num_hiders):
+        self.__num_hiders = num_hiders
+
     def __count_possible_cells(self):
         self.__possible_cells = 0
         queue = [(self.cur_x, self.cur_y)]

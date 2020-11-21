@@ -28,6 +28,7 @@ class Game:
                 elif self.__map[i][j] == Config.HIDER:
                     self.__num_hiders += 1
                     self.__hiders.append(Hider(self.__map, self.__n, self.__m, self.__range_seek, (i, j)))
+        self.__seeker.update_num_hiders(self.__num_hiders)
 
     def __read_map(self, fin):
         self.__map = [[int(x) for x in fin.readline().split(" ")] for i in range(self.__n)]
@@ -68,19 +69,20 @@ class Game:
             if self.__is_seeker_turn():
                 x, y = self.__seeker.move(self.__compute_seeker_turn())
                 self.__point -= int(x != 0 or y != 0)
-                self.__gui.append_move(x, y)
-                self.__gui.append_observable(self.__seeker.obs_list)
+                self.__gui.append_move_seeker(x, y)
+                self.__gui.append_observable_seeker(self.__seeker.obs_list)
             else:
                 index_hider_move = self.__is_turn_of_hider_number()
                 current_hider = self.__hiders[index_hider_move]
-                current_hider.move(self.__compute_hider_turn(index_hider_move))
-                if current_hider.should_announced():
-                    x, y = current_hider.announce()
-                    self.__seeker.signal_announce(x, y)
-                    self.__gui.display_announce((x, y))
+                if current_hider != None:
+                    current_hider.move(self.__compute_hider_turn(index_hider_move))
+                    if current_hider.should_announced():
+                        x, y = current_hider.announce()
+                        self.__seeker.signal_announce(x, y)
+                        self.__gui.display_announce((x, y))
             self.__turn += 1
             self.__check_met_hider()
-        if not is_debug():
+        if not is_debug:
             self.__gui.visualize()
         if (self.__winner == Config.SEEKER):
             print("Seeker win")
@@ -89,10 +91,12 @@ class Game:
         print("Point: {:d}".format(self.__point))
 
     def __check_met_hider(self):
-        for hider in self.__hiders:
+        for i in range(self.__hiders):
+            hider = self.__hiders[i]
             if self.__seeker.meet(hider):
                 self.__point += 20
-                self.__hiders.remove(hider)
+                self.__gui.make_hider_die(i)
+                hider = None
 
     def check_observable(self, i, j):
         print(self.__seeker.is_observable(i, j))
