@@ -12,6 +12,8 @@ class Hider(Player):
         self.__cur_dest = init_pos
         self.cur_x, self.cur_y = init_pos
         self.__cur_step = None
+        self.__init_seeker_heuristic_map()
+        self.__approximate_seeker_delay = 10
 #        self.__navigate()
 
     def __navigate(self):
@@ -19,12 +21,32 @@ class Hider(Player):
             for j in range(self.m):
                 if self.map[i][j] == Config.HIDER:
                     self.cur_x, self.cur_y = i, j
+    
+    def __init_seeker_heuristic_map(self):
+        self.__BFS_seeker_map = [[-1] * self.m for _ in range(self.n)]
+        visited = [[False] * self.m for _ in range(self.n)]
+        q = Queue()
+        seeker_x, seeker_y = self.__seeker_init_pos
+        visited[seeker_x][seeker_y] = True
+        self.__BFS_seeker_map[seeker_x][seeker_y] = 0
+        q.put((seeker_x, seeker_y, 0))
+        while not q.empty():
+            x, y, cost = q.get()
+            for dx, dy in Config.DIR:
+                ux, uy = x + dx, y + dy
+                if not self.isAccessable(ux, uy) or visited[ux][uy]:
+                    continue
+                self.__BFS_seeker_map[ux][uy] = cost + 1
+                visited[ux][uy] = True
+                q.put([ux, uy, cost + 1])
 
     def should_announced(self):
         pass
 
     def move(self, turn):
         if self.__cur_dest == (self.cur_x, self.cur_y):
+            if turn > self.__BFS_seeker_map[self.cur_x][self.cur_y] + self.__approximate_seeker_delay:
+                return (0, 0)
             self.__cur_dest = self.__find_dest((self.cur_x, self.cur_y))
             self.__cur_step = 0
         # print("Cur pos: {:d}, {:d}".format(self.cur_x, self.cur_y))
@@ -43,6 +65,9 @@ class Hider(Player):
         x2, y2 = des
         return ((x2 - x1)**2 + (y2 - y1)**2)
 
+    def __heuristic_value(self, src, i, j):
+        return 10 * self.hmap[i][j] - self.__mahattan_distance(src, (i,j)) + self.__BFS_seeker_map[i][j]
+
     def __find_dest(self, src):
 
         class DestEntry:
@@ -56,8 +81,7 @@ class Hider(Player):
         for i in range(self.n):
             for j in range(self.m):
                 if i != self.cur_x and j != self.cur_y:
-                    temp = 10 * self.hmap[i][j] - self.__mahattan_distance(src, (i,j))
-                    heapq.heappush(dest, DestEntry((i,j), temp))
+                    heapq.heappush(dest, DestEntry((i,j), self.__heuristic_value(src, i,j)))
 
         while len(dest) != 0:
             des = heapq.heappop(dest).pos
