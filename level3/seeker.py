@@ -14,6 +14,7 @@ class Seeker(Player):
         self.__count_possible_cells()
         self.__should_give_up = False
         self.__scan_verify()
+        self.list_notify = []
 
     def update_num_hiders(self, num_hiders):
         self.__num_hiders = num_hiders
@@ -39,8 +40,6 @@ class Seeker(Player):
                 if not visited_map[i][j] and self.map[i][j] not in [Config.VERIFIED, Config.WALL, Config.OBS]:
                     self.map[i][j] = Config.IMPOSSIBLE
 
-
-
     def __modify_map(self):
         for i in range(self.n):
             for j in range(self.m):
@@ -61,13 +60,23 @@ class Seeker(Player):
         return turn != 1 and turn % 5 == 1
 
     def __found_hider(self):
+        print(self.detected_coord != None)
+        print(self.detected_coord)
         return self.detected_coord != None
+
+    def update_hider_pos(self, curx, cury, dx, dy):
+        self.map[curx - dx][cury - dy] = Config.EMPTY
+        self.map[curx][cury] = Config.HIDER
 
     def move(self, turn):
         if self.__found_hider():
+            x, y = self.detected_coord
+            print(x, y)
+            self.path = copy.deepcopy(self.__find_path(x, y))
             if len(self.path) == 0:
-                x, y = self.detected_coord
-                self.path = copy.deepcopy(self.__find_path(x, y))
+                self.detected_coord = None
+                print("set here")
+                return self.__make_a_move(0, 0)
             x, y = self.path.pop(0)
             return self.__make_a_move(x, y)
         
@@ -130,6 +139,7 @@ class Seeker(Player):
                 if self.is_observable(i, j):
                     if (self.map[i][j] == Config.HIDER):
                         self.detected_coord = (i, j)
+                        self.list_notify.append((i, j))
                     elif self.map[i][j] not in [Config.IMPOSSIBLE, Config.WALL, Config.OBS]:
                         if self.map[i][j] != Config.VERIFIED:
                             self.__visited_cells += 1

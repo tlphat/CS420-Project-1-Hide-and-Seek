@@ -31,6 +31,7 @@ class Game:
                 elif self.__map[i][j] == Config.HIDER:
                     hiders_coors.append((i,j))
                     self.__num_hiders += 1
+        self.__gui.update_hiders_config(self.__num_hiders)
 
         for i in range(self.__num_hiders):
             self.__hiders.append(Hider(self.__map, self.__n, self.__m, self.__range_seek, hiders_coors[i], seeker_coor))
@@ -76,13 +77,16 @@ class Game:
             if self.__is_seeker_turn():
                 x, y = self.__seeker.move(self.__compute_seeker_turn())
                 self.__point -= int(x != 0 or y != 0)
+                print("Move: " + str((x, y)))
+                print("Seeker: " + str(self.__seeker.cur_x) + " " + str(self.__seeker.cur_y))
                 self.__gui.append_move_seeker(x, y)
                 self.__gui.append_observable_seeker(self.__seeker.obs_list)
             else:
                 index_hider_move = self.__is_turn_of_hider_number()
                 current_hider = self.__hiders[index_hider_move]
                 if current_hider != None:
-                    current_hider.move(self.__compute_hider_turn(index_hider_move))
+                    x, y = current_hider.move(self.__compute_hider_turn(index_hider_move))
+                    self.__seeker.update_hider_pos(current_hider.cur_x, current_hider.cur_y, x, y)
                     if current_hider.should_announced():
                         x, y = current_hider.announce()
                         self.__seeker.signal_announce(x, y)
@@ -100,10 +104,12 @@ class Game:
     def __check_met_hider(self):
         for i in range(len(self.__hiders)):
             hider = self.__hiders[i]
-            if self.__seeker.meet(hider):
-                self.__point += 20
-                self.__gui.make_hider_die(i)
-                hider = None
+            if hider != None:
+                if self.__seeker.meet(hider):
+                    print("meet: " + str(i))
+                    self.__point += 20
+                    self.__gui.make_hider_die(i)
+                    hider = None
 
     def check_observable(self, i, j):
         print(self.__seeker.is_observable(i, j))

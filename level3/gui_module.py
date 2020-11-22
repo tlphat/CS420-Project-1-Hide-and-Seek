@@ -59,6 +59,11 @@ class Gui:
             self.__game_canvas.create_image(1, row_y + 1, image = self.__img_wall, anchor = "nw")
             self.__game_canvas.create_image(self.__canvas_w - self.__cell_size + 1, row_y + 1, image = self.__img_wall, anchor = "nw")
 
+    def update_hiders_config(self, num_hiders):
+        self.__coord_hiders = [(0, 0)] * num_hiders
+        self.__observable_hiders = [[]] * num_hiders
+        self.__moves_hiders = [[]] * num_hiders
+
     def draw_map(self):
         self.draw_lines()
         self.draw_borders()
@@ -70,9 +75,9 @@ class Gui:
                     self.__game_canvas.create_image(y, x, image = self.__img_wall, anchor = "nw")
                 elif self.__map[i][j] == Config.HIDER:
                     self.__game_canvas.create_image(y, x, image = self.__img_hider, anchor = "nw")
-                    self.__coord_hiders.append((x, y))
-                    self.__observable_hiders.append([])
-                    self.__moves_hiders.append([])
+                    # self.__coord_hiders.append((x, y))
+                    # self.__observable_hiders.append([])
+                    # self.__moves_hiders.append([])
                 elif self.__map[i][j] == Config.SEEKER:
                     self.__my_seeker = self.__game_canvas.create_image(y, x, image = self.__img_seeker, anchor = "nw")
                     self.__coord_seeker = (x, y)
