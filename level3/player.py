@@ -6,6 +6,7 @@ class Player:
         self.n, self.m, self.obs_range = n, m, obs_range
         self.map = copy.deepcopy(map)
         self.cur_x, self.cur_y = init_pos
+        self.__init_heuristic_map()
 
     def is_in_range(self, x, y):
         return x >= 0 and x < self.n and y >= 0 and y < self.m
@@ -73,3 +74,19 @@ class Player:
                 self.map[x-(x-i)//abs(x-i)][y-2*(y-j)//abs(y-j)] in [Config.WALL, Config.OBS]:
                 return False
         return True
+
+    def __init_heuristic_map(self):
+        self.hmap = [[0] * self.m for _ in range(self.n)]
+        for i in range(self.n):
+            for j in range(self.m):
+                if self.map[i][j] in [Config.EMPTY]:
+                    self.hmap[i][j] = self.__count_nonempty_adj(i, j)
+
+    def __count_nonempty_adj(self, i, j):
+        cnt = 0
+        for direction in Config.DIR:
+            x, y = i + direction[0], j + direction[1]
+            if x < 0 or x >= self.n or y < 0 or y >= self.m:
+                continue
+            cnt += int(self.map[x][y] in [Config.WALL, Config.OBS])
+        return cnt

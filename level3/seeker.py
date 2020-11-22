@@ -10,7 +10,6 @@ class Seeker(Player):
         self.radar_path = []
         self.obs_list = []
         self.__modify_map()
-        self.__init_heuristic_map()
         self.__visited_cells = 1
         self.__count_possible_cells()
         self.__should_give_up = False
@@ -40,21 +39,7 @@ class Seeker(Player):
                 if not visited_map[i][j] and self.map[i][j] not in [Config.VERIFIED, Config.WALL, Config.OBS]:
                     self.map[i][j] = Config.IMPOSSIBLE
 
-    def __init_heuristic_map(self):
-        self.hmap = [[0] * self.m for _ in range(self.n)]
-        for i in range(self.n):
-            for j in range(self.m):
-                if self.map[i][j] in [Config.EMPTY]:
-                    self.hmap[i][j] = self.__count_nonempty_adj(i, j)
 
-    def __count_nonempty_adj(self, i, j):
-        cnt = 0
-        for direction in Config.DIR:
-            x, y = i + direction[0], j + direction[1]
-            if x < 0 or x >= self.n or y < 0 or y >= self.m:
-                continue
-            cnt += int(self.map[x][y] in [Config.WALL, Config.OBS])
-        return cnt
 
     def __modify_map(self):
         for i in range(self.n):

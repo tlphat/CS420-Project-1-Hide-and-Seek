@@ -21,13 +21,20 @@ class Game:
 
     def __init_players(self):
         self.__hiders = []
+        hiders_coors = []
+        seeker_coor = None
         for i in range(self.__n):
             for j in range(self.__m):
                 if self.__map[i][j] == Config.SEEKER:
-                    self.__seeker = Seeker(self.__map, self.__n, self.__m, self.__range_seek, (i, j))
+                    seeker_coor = i,j
+                    self.__seeker = Seeker(self.__map, self.__n, self.__m, self.__range_seek, seeker_coor)
                 elif self.__map[i][j] == Config.HIDER:
+                    hiders_coors.append((i,j))
                     self.__num_hiders += 1
-                    self.__hiders.append(Hider(self.__map, self.__n, self.__m, self.__range_seek, (i, j)))
+
+        for i in range(self.__num_hiders):
+            self.__hiders.append(Hider(self.__map, self.__n, self.__m, self.__range_seek, hiders_coors[i], seeker_coor))
+
         self.__seeker.update_num_hiders(self.__num_hiders)
 
     def __read_map(self, fin):
@@ -91,7 +98,7 @@ class Game:
         print("Point: {:d}".format(self.__point))
 
     def __check_met_hider(self):
-        for i in range(self.__hiders):
+        for i in range(len(self.__hiders)):
             hider = self.__hiders[i]
             if self.__seeker.meet(hider):
                 self.__point += 20
