@@ -35,6 +35,7 @@ class Game:
 
         for i in range(self.__num_hiders):
             self.__hiders.append(Hider(self.__map, self.__n, self.__m, self.__range_hide, hiders_coors[i], seeker_coor))
+            print("init hider {:d}: ".format(i)+str(hiders_coors[i]))
 
         self.__seeker.update_num_hiders(self.__num_hiders)
 
@@ -68,7 +69,7 @@ class Game:
     def operate(self, is_debug):
         self.__turn, self.__point = (1, 0)
         self.__winner = Config.HIDER
-        for _ in range(10):
+        for _ in range(20):
             if self.__hiders_found():
                 self.__winner = Config.SEEKER
                 break

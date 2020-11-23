@@ -13,7 +13,8 @@ class Hider(Player):
         self.cur_x, self.cur_y = init_pos
         self.__cur_step = None
         self.__init_seeker_heuristic_map()
-        self.__approximate_seeker_delay = 10
+        self.__approximate_seeker_delay = 7
+        # self.__update_destination()
         self.obs_list = [] # list of current observable cells
 #        self.__navigate()
 
@@ -44,21 +45,20 @@ class Hider(Player):
     def should_announced(self):
         pass
 
+    def __update_destination(self):
+        self.__cur_dest = self.__find_dest((self.cur_x, self.cur_y))
+        self.__cur_step = 0
+
     def move(self, turn):
         if self.__cur_dest == (self.cur_x, self.cur_y):
-            if turn > self.__BFS_seeker_map[self.cur_x][self.cur_y] + self.__approximate_seeker_delay:
+            # print("turn: {:d}, BFSseeker: {:d}".format(turn, self.__BFS_seeker_map[self.cur_x][self.cur_y]))
+            if turn > self.__BFS_seeker_map[self.cur_x][self.cur_y] + self.__approximate_seeker_delay: #TODO: fix when hiders move
                 return (0, 0)
-            self.__cur_dest = self.__find_dest((self.cur_x, self.cur_y))
-            self.__cur_step = 0
+            self.__update_destination()
         x, y = self.__cur_path[self.__cur_step]
-        #### avoid conflict
-        # if self.map[x][y] == Config.HIDER: # meet another hider on the way
-        #     if (x, y) == self.__cur_dest:
-        #         return (0,0)
-        #     alter_path = self.__BFS((self.cur_x, self.cur_y), (x,y))
-        #     alter_path.pop() # pop the des from path
-        #     self.__cur_path = alter_path + self.__cur_path
-        #     x, y = self.__cur_path[self.__cur_step]
+        print()
+        print("Destination: "+str(self.__cur_dest))
+        print("Current: {:d}, {:d}".format(self.cur_x, self.cur_y))
         dx, dy = x - self.cur_x, y - self.cur_y
         self.cur_x, self.cur_y = x, y
         self.__update_observable_range()
@@ -80,7 +80,7 @@ class Hider(Player):
         return ((x2 - x1)**2 + (y2 - y1)**2)
 
     def __heuristic_value(self, src, i, j):
-        return 10 * self.hmap[i][j] - self.__mahattan_distance(src, (i,j)) + self.__BFS_seeker_map[i][j]
+        return 10 * self.hmap[i][j] - self.__mahattan_distance(src, (i,j)) + 5*self.__BFS_seeker_map[i][j]
 
     def __find_dest(self, src):
 
@@ -109,7 +109,7 @@ class Hider(Player):
             return False
         if y < 0 or y >= self.m:
             return False
-        if self.map[x][y] in [Config.WALL, Config.OBS, Config.IMPOSSIBLE, Config.HIDER, Config.SEEKER]:
+        if self.map[x][y] in [Config.WALL, Config.OBS, Config.HIDER]: #TODO: remove HIDER when gui fixed
             return False
         return True
 
@@ -128,8 +128,6 @@ class Hider(Player):
                     q.put((ux, uy))
                     path[ux][uy] = x, y
                 if (ux, uy) == des:
-                    # print("src: "+str(src))
-                    # print("ux: {:d}, uy: {:d}".format(ux, uy))
                     return path
         return None
 
@@ -140,9 +138,8 @@ class Hider(Player):
         if BFS_path != None:
             while BFS_path[x][y] != src:
                 temp_path.append(BFS_path[x][y])
-                # print("x: {:d}, y: {:d}".format(x, y))
-                # print("Path [x][y]: " + str(path[x][y]))
                 x, y = BFS_path[x][y]
+            temp_path.reverse()
             temp_path.append(des)
             return temp_path
         return None
