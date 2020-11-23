@@ -49,16 +49,19 @@ class Hider(Player):
                 return (0, 0)
             self.__cur_dest = self.__find_dest((self.cur_x, self.cur_y))
             self.__cur_step = 0
-        # print("Cur pos: {:d}, {:d}".format(self.cur_x, self.cur_y))
-        # print("Path[0]: " + str(self.__cur_path[0]))
-        # print("Cur des: " + str(self.__cur_dest))
-        # print("Cur step: {:d}, Len curpath: {:d}".format(self.__cur_step, len(self.__cur_path)))
-        next_move = self.__cur_path[self.__cur_step]
-        x, y = next_move[0] - self.cur_x, next_move[1] - self.cur_y
-        self.cur_x, self.cur_y = self.__cur_path[self.__cur_step]
-        # print("Cur pos: {:d}, {:d}".format(self.cur_x, self.cur_y))
+        x, y = self.__cur_path[self.__cur_step]
+        #### avoid conflict
+        # if self.map[x][y] == Config.HIDER: # meet another hider on the way
+        #     if (x, y) == self.__cur_dest:
+        #         return (0,0)
+        #     alter_path = self.__BFS((self.cur_x, self.cur_y), (x,y))
+        #     alter_path.pop() # pop the des from path
+        #     self.__cur_path = alter_path + self.__cur_path
+        #     x, y = self.__cur_path[self.__cur_step]
+        dx, dy = x - self.cur_x, y - self.cur_y
+        self.cur_x, self.cur_y = x, y
         self.__cur_step += 1
-        return (x, y)
+        return (dx, dy)
 
     def __mahattan_distance(self, src, des):
         x1, y1 = src
@@ -85,7 +88,9 @@ class Hider(Player):
 
         while len(dest) != 0:
             des = heapq.heappop(dest).pos
-            if self.__find_path(src, des) == True:
+            temp_path = self.__find_path(src, des)
+            if temp_path != None:
+                self.__cur_path = temp_path
                 return des
     
     def isAccessable(self, x, y):
@@ -118,18 +123,18 @@ class Hider(Player):
         return None
 
     def __find_path(self, src, des):
-        self.__cur_path = []
-        path = self.__BFS(src, des)
+        temp_path = []
+        BFS_path = self.__BFS(src, des)
         x,y = des
-        if path != None:
-            while path[x][y] != src:
-                self.__cur_path.append(path[x][y])
+        if BFS_path != None:
+            while BFS_path[x][y] != src:
+                temp_path.append(BFS_path[x][y])
                 # print("x: {:d}, y: {:d}".format(x, y))
                 # print("Path [x][y]: " + str(path[x][y]))
-                x, y = path[x][y]
-            self.__cur_path.append(des)
-            return True
-        return False
+                x, y = BFS_path[x][y]
+            temp_path.append(des)
+            return temp_path
+        return None
             
     def announce(self):
         x, y = self.__randomize()
