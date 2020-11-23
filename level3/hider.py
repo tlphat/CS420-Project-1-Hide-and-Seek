@@ -42,8 +42,8 @@ class Hider(Player):
                 visited[ux][uy] = True
                 q.put([ux, uy, cost + 1])
 
-    def should_announced(self):
-        pass
+    def should_announced(self, turn):
+        return turn % 5 == 0
 
     def __update_destination(self):
         self.__cur_dest = self.__find_dest((self.cur_x, self.cur_y))
