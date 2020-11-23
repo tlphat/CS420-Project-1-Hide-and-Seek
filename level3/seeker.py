@@ -60,8 +60,6 @@ class Seeker(Player):
         return turn != 1 and turn % 5 == 1
 
     def __found_hider(self):
-        print(self.detected_coord != None)
-        print(self.detected_coord)
         return self.detected_coord != None
 
     def update_hider_pos(self, curx, cury, dx, dy):
@@ -71,11 +69,9 @@ class Seeker(Player):
     def move(self, turn):
         if self.__found_hider():
             x, y = self.detected_coord
-            print(x, y)
             self.path = copy.deepcopy(self.__find_path(x, y))
             if len(self.path) == 0:
                 self.detected_coord = None
-                print("set here")
                 return self.__make_a_move(0, 0)
             x, y = self.path.pop(0)
             return self.__make_a_move(x, y)

@@ -14,6 +14,7 @@ class Hider(Player):
         self.__cur_step = None
         self.__init_seeker_heuristic_map()
         self.__approximate_seeker_delay = 10
+        self.obs_list = [] # list of current observable cells
 #        self.__navigate()
 
     def __navigate(self):
@@ -56,9 +57,20 @@ class Hider(Player):
         next_move = self.__cur_path[self.__cur_step]
         x, y = next_move[0] - self.cur_x, next_move[1] - self.cur_y
         self.cur_x, self.cur_y = self.__cur_path[self.__cur_step]
+        self.__update_observable_range()
         # print("Cur pos: {:d}, {:d}".format(self.cur_x, self.cur_y))
         self.__cur_step += 1
+        #print("Hider, my move: {:d}, {:d}".format(x, y))
         return (x, y)
+
+    def __update_observable_range(self):
+        self.obs_list = []
+        for i in range(self.cur_x - self.obs_range, self.cur_x + self.obs_range + 1):
+            for j in range(self.cur_y - self.obs_range, self.cur_y + self.obs_range + 1):
+                if i < 0 or i >= self.n or j < 0 or j >= self.m:
+                    continue
+                if self.is_observable(i, j) and self.map[i][j] not in [Config.WALL, Config.OBS]:
+                    self.obs_list.append((i, j))
 
     def __mahattan_distance(self, src, des):
         x1, y1 = src

@@ -34,7 +34,7 @@ class Game:
         self.__gui.update_hiders_config(self.__num_hiders)
 
         for i in range(self.__num_hiders):
-            self.__hiders.append(Hider(self.__map, self.__n, self.__m, self.__range_seek, hiders_coors[i], seeker_coor))
+            self.__hiders.append(Hider(self.__map, self.__n, self.__m, self.__range_hide, hiders_coors[i], seeker_coor))
 
         self.__seeker.update_num_hiders(self.__num_hiders)
 
@@ -68,7 +68,7 @@ class Game:
     def operate(self, is_debug):
         self.__turn, self.__point = (1, 0)
         self.__winner = Config.HIDER
-        while True:
+        for _ in range(10):
             if self.__hiders_found():
                 self.__winner = Config.SEEKER
                 break
@@ -77,7 +77,6 @@ class Game:
             if self.__is_seeker_turn():
                 x, y = self.__seeker.move(self.__compute_seeker_turn())
                 self.__point -= int(x != 0 or y != 0)
-                print("Move: " + str((x, y)))
                 print("Seeker: " + str(self.__seeker.cur_x) + " " + str(self.__seeker.cur_y))
                 self.__gui.append_move_seeker(x, y)
                 self.__gui.append_observable_seeker(self.__seeker.obs_list)
@@ -86,7 +85,10 @@ class Game:
                 current_hider = self.__hiders[index_hider_move]
                 if current_hider != None:
                     x, y = current_hider.move(self.__compute_hider_turn(index_hider_move))
+                    print("Hider " + str(index_hider_move) + ": " + str(self.__hiders[index_hider_move].cur_x) + " " + str(self.__hiders[index_hider_move].cur_y))
                     self.__seeker.update_hider_pos(current_hider.cur_x, current_hider.cur_y, x, y)
+                    self.__gui.append_move_hider(index_hider_move, x, y)
+                    self.__gui.append_observable_hider(index_hider_move, self.__hiders[index_hider_move].obs_list)
                     if current_hider.should_announced():
                         x, y = current_hider.announce()
                         self.__seeker.signal_announce(x, y)

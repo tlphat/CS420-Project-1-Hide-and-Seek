@@ -60,9 +60,12 @@ class Gui:
             self.__game_canvas.create_image(self.__canvas_w - self.__cell_size + 1, row_y + 1, image = self.__img_wall, anchor = "nw")
 
     def update_hiders_config(self, num_hiders):
-        self.__coord_hiders = [(0, 0)] * num_hiders
-        self.__observable_hiders = [[]] * num_hiders
-        self.__moves_hiders = [[]] * num_hiders
+        #self.__coord_hiders = [(0, 0)] * num_hiders
+        self.__observable_hiders = []
+        self.__moves_hiders = []
+        for _ in range(num_hiders):
+            self.__moves_hiders.append([])
+            self.__observable_hiders.append([])
 
     def draw_map(self):
         self.draw_lines()
@@ -75,7 +78,7 @@ class Gui:
                     self.__game_canvas.create_image(y, x, image = self.__img_wall, anchor = "nw")
                 elif self.__map[i][j] == Config.HIDER:
                     self.__game_canvas.create_image(y, x, image = self.__img_hider, anchor = "nw")
-                    # self.__coord_hiders.append((x, y))
+                    self.__coord_hiders.append((x, y))
                     # self.__observable_hiders.append([])
                     # self.__moves_hiders.append([])
                 elif self.__map[i][j] == Config.SEEKER:
@@ -113,7 +116,7 @@ class Gui:
     def __mark_current_hiders_observable_ranges(self, marked_cells):
         for i in range(len(self.__coord_hiders)):
             if not self.__hider_is_dead(i):
-                cur_obs = self.__observable_seeker[self.__move_id]
+                cur_obs = self.__observable_hiders[i][self.__move_id]
                 for x, y in cur_obs:
                     tx = self.__cell_size * (x + 1) + 1
                     ty = self.__cell_size * (y + 1) + 1
@@ -125,9 +128,10 @@ class Gui:
     def __draw_current_hiders(self):
         for i in range(len(self.__coord_hiders)):
             if not self.__hider_is_dead(i):
-                dx, dy = self.__moves_hiders[i]
+                dx, dy = self.__moves_hiders[i][self.__move_id]
                 x, y = self.__coord_hiders[i]
                 x, y = x + dx * self.__cell_size, y + dy * self.__cell_size
+                print("drawing hider {:d}: {:d}, {:d}, {:d}, {:d}".format(i, dx, dy, x, y))
                 self.__coord_hiders[i] = (x, y)
                 self.__game_canvas.create_image(y, x, image = self.__img_hider, anchor = "nw")
 
@@ -176,6 +180,41 @@ class Gui:
                 self.__game_canvas.after((10 * (j + 1) + 1) * self.__time_delay, self.fade_out_announce)
                 j += len(self.__coord_hiders)
 
+    def call_back_level_3(self):
+        num_hiders = len(self.__coord_hiders)
+        i = 0
+        while True:
+            if i >= len(self.__moves_seeker):
+                break
+            self.__game_canvas.after(self.__time_delay * ((num_hiders + 1) * i + 1), self.seeker_move)
+            self.__index_hider = 0
+            for index in range(num_hiders):
+                self.__game_canvas.after(self.__time_delay * ((num_hiders + 1) * i + 2 + index), self.hider_move)
+            i += 1
+        # announce later
+
+    def seeker_move(self):
+        self.__move_id += 1
+        dx, dy = self.__moves_seeker[self.__move_id]
+        x, y = self.__coord_seeker
+        x, y = x + dx * self.__cell_size, y + dy * self.__cell_size
+        self.__coord_seeker = x, y
+        self.__game_canvas.create_image(y, x, image = self.__img_seeker, anchor = "nw")
+
+    def hider_move(self):
+        if not self.__hider_is_dead(self.__index_hider) and self.__move_id < len(self.__moves_hiders[self.__index_hider]):
+            dx, dy = self.__moves_hiders[self.__index_hider][self.__move_id]
+            x, y = self.__coord_hiders[self.__index_hider]
+
+            # tmp delete previous pos of hider
+            if (x, y) != self.__coord_seeker:
+                self.__game_canvas.create_image(y, x, image = self.__img_emptycell, anchor = "nw")    
+
+            x, y = x + dx * self.__cell_size, y + dy * self.__cell_size
+            self.__coord_hiders[self.__index_hider] = (x, y)
+            self.__game_canvas.create_image(y, x, image = self.__img_hider, anchor = "nw")
+        self.__index_hider = (self.__index_hider + 1) % len(self.__coord_hiders)
+
     def move_process(self):
         time = self.__time_delay
         for _ in range(len(self.__moves_seeker)):
@@ -217,5 +256,5 @@ class Gui:
 
     def visualize(self):
         self.draw_map()
-        self.call_back()
+        self.call_back_level_3()
         self.__windows_root.mainloop()
