@@ -171,7 +171,7 @@ class Seeker(Player):
         else:
             # print('Mark all neighbor are empty')
             self.fillHeuristic()
-            self.buildHeuristic()
+            # self.buildHeuristic()
 
         # print('Start to find min neighbor heuristic')
 
@@ -179,7 +179,7 @@ class Seeker(Player):
 
         # print('Finish find neighbor heuristic')
 
-        if target != [None, None]:
+        if target != (None, None):
             # print('neighbor heuristic not none:', target)
             if not self.directToCell(0, target):
                 self.map[self.cell[0][0]][self.cell[0][1]] = SEEKER
@@ -226,6 +226,8 @@ class Hider(Player):
     def annouce(self):
         self.listAnnouce.clear()
         for hider in self.cell:
+            if (hider == None):
+                continue
             u = myRand(hider[0] - self.range, hider[0] + self.range, self.n)
             v = myRand(hider[1] - self.range, hider[1] + self.range, self.m)
 
@@ -234,3 +236,6 @@ class Hider(Player):
                 v = myRand(hider[1] - self.range, hider[1] + self.range, self.m)
                 
             self.listAnnouce.append([u, v])
+
+    def updateDead(self, id):
+        self.cell[id] = None

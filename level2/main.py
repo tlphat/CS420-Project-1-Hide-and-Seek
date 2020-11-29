@@ -10,7 +10,7 @@ if __name__ == "__main__":
 
     gui = Gui()
     game = Game(gui)
-    game.read_input("1.1")
+    game.read_input("2.6")
     hider = Hider(game.getMap(), game.getSize(), game.getRangeHider(), game.getHiderLocation(), gui)
     seeker = Seeker(game.getMap(), game.getSize(), game.getRangeSeeker(), game.getSeekerLocation(), gui)
 
@@ -24,7 +24,8 @@ if __name__ == "__main__":
 
     # print(seeker.heuristic)
 
-    for turn in range(10000):
+    turn = 0
+    while True:
         if turn % 2 == 1:
             seeker.next_move()
         else:
@@ -35,11 +36,14 @@ if __name__ == "__main__":
             seeker.updateAnnouce(hider.getAnnouce())
 
         for hide in range(len(hider.cell)):
-           if check[hide] == 0 and seeker.isInsideRange(seeker.cell[0][0], seeker.cell[0][1], hider.cell[hide][0], hider.cell[hide][1]):
-               check[hide] = 1
-               print('I am at: ', seeker.cell[0])
-               print('I can see hider at:', hider.cell[hide])
-               seeker.updateHider(hider.cell[hide][0], hider.cell[hide][1])
+            if check[hide] == 0 and seeker.isInsideRange(seeker.cell[0][0], seeker.cell[0][1], hider.cell[hide][0], hider.cell[hide][1]):
+                check[hide] = 1
+                print('I am at: ', seeker.cell[0])
+                print('I can see hider at:', hider.cell[hide])
+                seeker.updateHider(hider.cell[hide][0], hider.cell[hide][1])
+            if seeker.cell[0] == hider.cell[hide]:
+                hider.updateDead(hide)
+
         
         if seeker.hiderFound == len(hider.cell):
             print()
@@ -52,6 +56,8 @@ if __name__ == "__main__":
             print(seeker.print_map())
             gui.visualize()
             exit(0)
+        
+        turn += 1
 
     print()
     print()

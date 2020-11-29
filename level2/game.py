@@ -32,8 +32,6 @@ class Game:
         while (line != ""):
             # read coordinates of top left and bottom right of the rectangle obstacles
             x_tl, y_tl, x_br, y_br = [int(x) for x in line.split(" ")]
-            x_br += 1
-            y_br += 1
             for i in range(x_tl, x_br + 1):
                 for j in range(y_tl, y_br + 1):
                     self.map[i][j] = OBS
