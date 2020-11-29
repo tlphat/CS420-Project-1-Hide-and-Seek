@@ -60,7 +60,7 @@ class Gui:
                 if cur_map[i][j] == Config.HIDER:
                     for k in range(i - Config.RANGE_HIDER, i + Config.RANGE_HIDER + 1):
                         for t in range(j - Config.RANGE_HIDER, j + Config.RANGE_HIDER + 1):
-                            if k >= 0 and k < self.__n and t >= 0 and t < self.__m and self.is_observable(i, j, k, t, Config.RANGE_HIDER):
+                            if k >= 0 and k < self.__n and t >= 0 and t < self.__m and cur_map[k][t] not in [Config.OBS, Config.WALL] and self.is_observable(i, j, k, t, Config.RANGE_HIDER):
                                 x = self.__cell_size * (k + 1) + 1
                                 y = self.__cell_size * (t + 1) + 1
                                 self.__game_canvas.create_image(y, x, image = self.__img_hider_obs, anchor = "nw")
@@ -70,8 +70,8 @@ class Gui:
             for j in range(self.__m):
                 if cur_map[i][j] == Config.SEEKER:
                     for k in range(i - Config.RANGE_SEEKER, i + Config.RANGE_SEEKER + 1):
-                        for t in range(i - Config.RANGE_SEEKER, j + Config.RANGE_SEEKER + 1):
-                            if k >= 0 and k < self.__n and t >= 0 and t < self.__m and self.is_observable(i, j, k, t, Config.RANGE_SEEKER):
+                        for t in range(j - Config.RANGE_SEEKER, j + Config.RANGE_SEEKER + 1):
+                            if k >= 0 and k < self.__n and t >= 0 and t < self.__m and cur_map[k][t] not in [Config.OBS, Config.WALL] and self.is_observable(i, j, k, t, Config.RANGE_SEEKER):
                                 x = self.__cell_size * (k + 1) + 1
                                 y = self.__cell_size * (t + 1) + 1
                                 self.__game_canvas.create_image(y, x, image = self.__img_observable, anchor = "nw")

@@ -34,7 +34,6 @@ class Game:
 
         for i in range(self.__num_hiders):
             self.__hiders.append(Hider(self.__map, self.__n, self.__m, self.__range_hide, hiders_coors[i], seeker_coor))
-            print("init hider {:d}: ".format(i)+str(hiders_coors[i]))
 
         self.__seeker.update_num_hiders(self.__num_hiders)
 
@@ -63,41 +62,45 @@ class Game:
         return (self.__turn - (index + 2)) // (self.__num_hiders + 1) + 1
 
     def __hiders_found(self):
-        return self.__num_hiders == 0
+        for i in range(len(self.__hiders)):
+            if self.__hiders[i] != None:
+                return False
+        return True
+
+    def make_seeker_move(self):
+        x, y = self.__seeker.move(self.__compute_seeker_turn())
+        self.__point -= int(x != 0 or y != 0)
+        self.__map[self.__seeker.cur_x - x][self.__seeker.cur_y - y] = Config.EMPTY
+        self.__map[self.__seeker.cur_x][self.__seeker.cur_y] = Config.SEEKER
+
+    def make_hider_move(self):
+        index_hider_move = self.__is_turn_of_hider_number()
+        current_hider = self.__hiders[index_hider_move]
+        if current_hider != None:
+            x, y = current_hider.move(self.__compute_hider_turn(index_hider_move))
+            self.__seeker.update_hider_pos(current_hider.cur_x, current_hider.cur_y, x, y)
+            if not self.overlap_hider(self.__hiders[index_hider_move].cur_x - x, self.__hiders[index_hider_move].cur_y - y, index_hider_move):
+                self.__map[self.__hiders[index_hider_move].cur_x - x][self.__hiders[index_hider_move].cur_y - y] = Config.EMPTY
+            self.__map[self.__hiders[index_hider_move].cur_x][self.__hiders[index_hider_move].cur_y] = Config.HIDER
+            if current_hider.should_announced(self.__compute_hider_turn(index_hider_move)):
+                x, y = current_hider.announce()
+                self.__seeker.signal_announce(x, y)
+                self.__gui.send_signal_announce((x, y), self.__turn)
 
     def operate(self, is_debug):
         self.__turn, self.__point = (1, 0)
         self.__winner = Config.HIDER
-        for _ in range(350):
+        while True:
             if self.__hiders_found():
                 self.__winner = Config.SEEKER
                 break
             if self.__seeker.visited_all():
                 break
             if self.__is_seeker_turn():
-                x, y = self.__seeker.move(self.__compute_seeker_turn())
-                self.__point -= int(x != 0 or y != 0)
-                print("Seeker: " + str(self.__seeker.cur_x) + " " + str(self.__seeker.cur_y))
-                self.__map[self.__seeker.cur_x - x][self.__seeker.cur_y - y] = Config.EMPTY
-                self.__map[self.__seeker.cur_x][self.__seeker.cur_y] = Config.SEEKER
+                self.make_seeker_move()
             else:
-                index_hider_move = self.__is_turn_of_hider_number()
-                current_hider = self.__hiders[index_hider_move]
-                if current_hider != None:
-                    x, y = current_hider.move(self.__compute_hider_turn(index_hider_move))
-                    print("Hider " + str(index_hider_move) + ": " + str(self.__hiders[index_hider_move].cur_x) + " " + str(self.__hiders[index_hider_move].cur_y))
-                    self.__seeker.update_hider_pos(current_hider.cur_x, current_hider.cur_y, x, y)
-                    if not self.overlap_hider(self.__hiders[index_hider_move].cur_x - x, self.__hiders[index_hider_move].cur_y - y, index_hider_move):
-                        self.__map[self.__hiders[index_hider_move].cur_x - x][self.__hiders[index_hider_move].cur_y - y] = Config.EMPTY
-                    self.__map[self.__hiders[index_hider_move].cur_x][self.__hiders[index_hider_move].cur_y] = Config.HIDER
-                    if current_hider.should_announced(self.__compute_hider_turn(index_hider_move)):
-                        x, y = current_hider.announce()
-                        self.__seeker.signal_announce(x, y)
-                        self.__gui.send_signal_announce((x, y), self.__turn)
-                        #self.__gui.display_announce((x, y))
-            self.__gui.update_map(self.__map)
-            self.__turn += 1
-            self.__check_met_hider()
+                self.make_hider_move()
+            self.update_game_info()
         if not is_debug:
             self.__gui.visualize()
         if (self.__winner == Config.SEEKER):
@@ -105,6 +108,11 @@ class Game:
         else:
             print("Hiders win")
         print("Point: {:d}".format(self.__point))
+
+    def update_game_info(self):
+        self.__gui.update_map(self.__map)
+        self.__turn += 1
+        self.__check_met_hider()
 
     def overlap_hider(self, i, j, index):
         for k in range(len(self.__hiders)):
@@ -115,6 +123,7 @@ class Game:
         return False
 
     def __check_met_hider(self):
+        found_somehider = False
         for i in range(len(self.__hiders)):
             hider = self.__hiders[i]
             if hider != None:
@@ -123,7 +132,16 @@ class Game:
                     x, y = hider.cur_x, hider.cur_y
                     if not self.overlap_hider(x, y, i):
                         self.__map[x][y] = Config.EMPTY
-                    hider = None
+                        self.__seeker.map[x][y] = Config.VERIFIED
+                    self.__hiders[i] = None
+                    found_somehider = True
+        if found_somehider:
+            self.reset_seeker_info()
+
+    def reset_seeker_info(self):
+        self.__seeker.detected_coord = None
+        self.__seeker.radar_path = []
+        self.__seeker.init_heuristic_map()
 
     def check_observable(self, i, j):
         print(self.__seeker.is_observable(i, j))

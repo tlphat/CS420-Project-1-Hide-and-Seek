@@ -79,12 +79,12 @@ class Seeker(Player):
         if not self.__has_seen_announce() and not self.__is_turn_to_move(turn):
             return (0, 0)
         if not self.__has_seen_announce():
-            self.__cross_out_redundent_path()
+            self.__cross_out_redundant_path()
         if len(self.radar_path) == 0:
             self.__explore()
         if len(self.radar_path) == 0:
-            if self.__has_checked_all_announce():
-                self.__should_give_up = True
+            # if self.__has_checked_all_announce():
+            #     self.__should_give_up = True
             return (0, 0)
         x, y = self.radar_path.pop(0)
         return self.__make_a_move(x, y)
@@ -103,7 +103,7 @@ class Seeker(Player):
             self.__should_give_up = True
         return self.__should_give_up
 
-    def __cross_out_redundent_path(self):
+    def __cross_out_redundant_path(self):
         prev_x, prev_y = self.cur_x, self.cur_y
         for step in self.radar_path:
             x, y = step
@@ -123,6 +123,7 @@ class Seeker(Player):
                     if comp_heuristic > cur_heuristic:
                         cur_heuristic = comp_heuristic
                         x, y = i, j
+        print("afdasfasfasf {}, {}".format(x, y))
         self.radar_path = self.__find_path(x, y)
 
     def __scan_verify(self):
@@ -146,6 +147,7 @@ class Seeker(Player):
                         self.__adj_non_empty += 1
 
     def __find_path(self, fx, fy):
+        print("find path to {}, {}".format(fx, fy))
         queue = [(self.cur_x, self.cur_y, -1, -1)]
         visited_map = [[(-2, -2)] * self.m for _ in range(self.n)]
         visited_map[self.cur_x][self.cur_y] = (-1, -1)
@@ -178,6 +180,9 @@ class Seeker(Player):
             prev_x, prev_y = x, y
             x, y = visited_map[prev_x][prev_y]
         res.reverse()
+        print("path", end = " ")
+        for tmp in res:
+            print(tmp)
         return res
 
     def signal_announce(self, x, y):
@@ -196,3 +201,6 @@ class Seeker(Player):
 
     def meet(self, seeker):
         return seeker.meet(self.cur_x, self.cur_y)
+
+    def init_heuristic_map(self):
+        super().init_heuristic_map()

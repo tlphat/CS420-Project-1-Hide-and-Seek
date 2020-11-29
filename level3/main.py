@@ -1,5 +1,4 @@
 from defines import Config
-#from gui_module import Gui
 from gui_level3 import Gui
 from game import Game
 import copy

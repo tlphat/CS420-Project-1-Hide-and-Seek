@@ -6,7 +6,7 @@ class Player:
         self.n, self.m, self.obs_range = n, m, obs_range
         self.map = copy.deepcopy(map)
         self.cur_x, self.cur_y = init_pos
-        self.__init_heuristic_map()
+        self.init_heuristic_map()
 
     def is_in_range(self, x, y):
         return x >= 0 and x < self.n and y >= 0 and y < self.m
@@ -75,7 +75,7 @@ class Player:
                 return False
         return True
 
-    def __init_heuristic_map(self):
+    def init_heuristic_map(self):
         self.hmap = [[0] * self.m for _ in range(self.n)]
         for i in range(self.n):
             for j in range(self.m):
