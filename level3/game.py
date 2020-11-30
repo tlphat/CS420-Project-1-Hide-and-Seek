@@ -90,7 +90,7 @@ class Game:
     def operate(self, is_debug):
         self.__turn, self.__point = (1, 0)
         self.__winner = Config.HIDER
-        for _ in range(1000):
+        while True:
             if self.__hiders_found():
                 self.__winner = Config.SEEKER
                 break

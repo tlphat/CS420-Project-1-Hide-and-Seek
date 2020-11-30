@@ -38,10 +38,6 @@ class Seeker(Player):
                 if self.is_in_range(nxt_x, nxt_y) and not visited_map[nxt_x][nxt_y] and self.map[nxt_x][nxt_y] not in [Config.WALL, Config.OBS]:
                     queue.append((nxt_x, nxt_y))
                     visited_map[nxt_x][nxt_y] = True
-        # for i in range(self.n):
-        #     for j in range(self.m):
-        #         print(str(visited_map[i][j]), end = " ")
-            print()
         self.__mark_unreachable_cell(visited_map)
         
     def __mark_unreachable_cell(self, visited_map):
@@ -49,10 +45,6 @@ class Seeker(Player):
             for j in range(self.m):
                 if not visited_map[i][j] and self.map[i][j] not in [Config.VERIFIED, Config.WALL, Config.OBS]:
                     self.map[i][j] = Config.IMPOSSIBLE
-        # for i in range(self.n):
-        #     for j in range(self.m):
-        #         print(str(self.map[i][j]), end = " ")
-        #     print()
 
     def __modify_map(self):
         for i in range(self.n):
@@ -77,8 +69,9 @@ class Seeker(Player):
         return self.detected_coord != None
 
     def update_hider_pos(self, curx, cury, dx, dy):
-        self.map[curx - dx][cury - dy] = Config.EMPTY
-        self.map[curx][cury] = Config.HIDER
+        if (self.map[curx - dx][cury - dy] != Config.IMPOSSIBLE):
+            self.map[curx - dx][cury - dy] = Config.EMPTY
+            self.map[curx][cury] = Config.HIDER
 
     def move(self, turn):
         if self.__found_hider():
@@ -137,6 +130,8 @@ class Seeker(Player):
                     if comp_heuristic > cur_heuristic:
                         cur_heuristic = comp_heuristic
                         x, y = i, j
+        if x == None and y == None:
+            self.__should_give_up = True
         print("afdasfasfasf {}, {}".format(x, y))
         self.radar_path = self.__find_path(x, y)
 
@@ -161,7 +156,6 @@ class Seeker(Player):
                         self.__adj_non_empty += 1
 
     def __find_path(self, fx, fy):
-        print("find path to {}, {}".format(fx, fy))
         queue = [(self.cur_x, self.cur_y, -1, -1)]
         visited_map = [[(-2, -2)] * self.m for _ in range(self.n)]
         visited_map[self.cur_x][self.cur_y] = (-1, -1)
@@ -194,9 +188,6 @@ class Seeker(Player):
             prev_x, prev_y = x, y
             x, y = visited_map[prev_x][prev_y]
         res.reverse()
-        print("path", end = " ")
-        for tmp in res:
-            print(tmp)
         return res
 
     def signal_announce(self, x, y):
