@@ -137,6 +137,7 @@ class Seeker(Player):
 
     def __scan_verify(self):
         self.obs_list = []
+        self.list_notify = []
         self.__adj_non_empty = 0
         for i in range(self.cur_x - self.obs_range, self.cur_x + self.obs_range + 1):
             for j in range(self.cur_y - self.obs_range, self.cur_y + self.obs_range + 1):

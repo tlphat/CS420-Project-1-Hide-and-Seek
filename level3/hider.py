@@ -13,10 +13,15 @@ class Hider(Player):
         self.cur_x, self.cur_y = init_pos
         self.__cur_step = None
         self.__init_seeker_heuristic_map()
-        self.__approximate_seeker_delay = 7
+        self.__approximate_seeker_delay = 30
+        self.is_regconized = False
+        self.__prev_cur_dest = None
         # self.__update_destination()
         self.obs_list = [] # list of current observable cells
 #        self.__navigate()
+
+    def update_seeker_pos(self, x, y):
+        self.__seeker_init_pos = x,y
 
     def __navigate(self):
         for i in range(self.n):
@@ -49,11 +54,26 @@ class Hider(Player):
         self.__cur_dest = self.__find_dest((self.cur_x, self.cur_y))
         self.__cur_step = 0
 
+    def __should_stay(self, turn):
+        if turn < self.__BFS_seeker_map[self.cur_x][self.cur_y] + self.__approximate_seeker_delay:
+            return True
+        if self.hmap[self.cur_x][self.cur_y] > 3:
+            return True
+        return False
+
+    def __run(self):
+        self.__init_seeker_heuristic_map()
+        self.__update_destination()
+
     def move(self, turn):
+        if self.is_regconized == True:
+            self.__run()
+            if turn % 2 != 0:
+                return (0,0)
         if self.__cur_dest == (self.cur_x, self.cur_y):
-            # print("turn: {:d}, BFSseeker: {:d}".format(turn, self.__BFS_seeker_map[self.cur_x][self.cur_y]))
-            if turn > self.__BFS_seeker_map[self.cur_x][self.cur_y] + self.__approximate_seeker_delay: #TODO: fix when hiders move
+            if self.__should_stay(turn) == True: 
                 return (0, 0)
+            self.__prev_cur_dest = self.__cur_dest
             self.__update_destination()
         x, y = self.__cur_path[self.__cur_step]
         print()
@@ -80,7 +100,13 @@ class Hider(Player):
         return ((x2 - x1)**2 + (y2 - y1)**2)
 
     def __heuristic_value(self, src, i, j):
-        return 10 * self.hmap[i][j] - self.__mahattan_distance(src, (i,j)) + 5*self.__BFS_seeker_map[i][j]
+        k_h = 15
+        k_m = 1
+        k_s = 10
+        if (self.is_regconized == True):
+            k_h = 0
+            k_m = 1
+        return k_h * self.hmap[i][j] - k_m * self.__mahattan_distance(src, (i,j)) + k_s * self.__BFS_seeker_map[i][j]
 
     def __find_dest(self, src):
 
@@ -94,7 +120,7 @@ class Hider(Player):
         dest = []
         for i in range(self.n):
             for j in range(self.m):
-                if i != self.cur_x and j != self.cur_y:
+                if i != self.cur_x and j != self.cur_y and (i, j) != self.__prev_cur_dest:
                     heapq.heappush(dest, DestEntry((i,j), self.__heuristic_value(src, i,j)))
 
         while len(dest) != 0:
