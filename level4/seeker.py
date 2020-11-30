@@ -15,6 +15,7 @@ class Seeker(Player):
         self.__should_give_up = False
         self.__scan_verify()
         self.list_notify = []
+        self.num_hiders = 0
 
     def reset_verified_map(self):
         for i in range(len(self.map)):
@@ -22,8 +23,9 @@ class Seeker(Player):
                 if (self.map[i][j] == Config.VERIFIED):
                     self.map[i][j] = Config.EMPTY
 
-    def update_num_hiders(self, num_hiders):
-        self.__num_hiders = num_hiders
+    @num_hiders.setter
+    def num_hiders(self, num_hiders):
+        self.num_hiders = num_hiders
 
     def __count_possible_cells(self):
         self.__possible_cells = 0
