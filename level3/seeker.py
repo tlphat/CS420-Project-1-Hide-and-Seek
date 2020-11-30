@@ -16,6 +16,12 @@ class Seeker(Player):
         self.__scan_verify()
         self.list_notify = []
 
+    def reset_verified_map(self):
+        for i in range(len(self.map)):
+            for j in range(len(self.map[i])):
+                if (self.map[i][j] == Config.VERIFIED):
+                    self.map[i][j] = Config.EMPTY
+
     def update_num_hiders(self, num_hiders):
         self.__num_hiders = num_hiders
 
@@ -32,6 +38,10 @@ class Seeker(Player):
                 if self.is_in_range(nxt_x, nxt_y) and not visited_map[nxt_x][nxt_y] and self.map[nxt_x][nxt_y] not in [Config.WALL, Config.OBS]:
                     queue.append((nxt_x, nxt_y))
                     visited_map[nxt_x][nxt_y] = True
+        # for i in range(self.n):
+        #     for j in range(self.m):
+        #         print(str(visited_map[i][j]), end = " ")
+            print()
         self.__mark_unreachable_cell(visited_map)
         
     def __mark_unreachable_cell(self, visited_map):
@@ -39,6 +49,10 @@ class Seeker(Player):
             for j in range(self.m):
                 if not visited_map[i][j] and self.map[i][j] not in [Config.VERIFIED, Config.WALL, Config.OBS]:
                     self.map[i][j] = Config.IMPOSSIBLE
+        # for i in range(self.n):
+        #     for j in range(self.m):
+        #         print(str(self.map[i][j]), end = " ")
+        #     print()
 
     def __modify_map(self):
         for i in range(self.n):
@@ -85,7 +99,7 @@ class Seeker(Player):
         if len(self.radar_path) == 0:
             # if self.__has_checked_all_announce():
             #     self.__should_give_up = True
-            return (0, 0)
+            return self.__make_a_move(0, 0)
         x, y = self.radar_path.pop(0)
         return self.__make_a_move(x, y)
 

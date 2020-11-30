@@ -90,7 +90,7 @@ class Game:
     def operate(self, is_debug):
         self.__turn, self.__point = (1, 0)
         self.__winner = Config.HIDER
-        while True:
+        for _ in range(1000):
             if self.__hiders_found():
                 self.__winner = Config.SEEKER
                 break
@@ -108,6 +108,10 @@ class Game:
         else:
             print("Hiders win")
         print("Point: {:d}".format(self.__point))
+        for i in range(len(self.__seeker.map)):
+            for j in range(len(self.__seeker.map[i])):
+                print(str(self.__seeker.map[i][j]), end = " ")
+            print()
 
     def update_game_info(self):
         self.__gui.update_map(self.__map)
@@ -142,6 +146,7 @@ class Game:
         self.__seeker.detected_coord = None
         self.__seeker.radar_path = []
         self.__seeker.init_heuristic_map()
+        self.__seeker.reset_verified_map()
 
     def check_observable(self, i, j):
         print(self.__seeker.is_observable(i, j))
