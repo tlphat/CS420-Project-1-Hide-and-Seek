@@ -21,6 +21,8 @@ class Seeker(Player):
             for j in range(len(self.map[i])):
                 if (self.map[i][j] == Config.VERIFIED):
                     self.map[i][j] = Config.EMPTY
+        self.map[self.cur_x][self.cur_y] = Config.VERIFIED
+        self.__visited_cells = 1
 
     def update_num_hiders(self, num_hiders):
         self.__num_hiders = num_hiders
@@ -90,8 +92,6 @@ class Seeker(Player):
         if len(self.radar_path) == 0:
             self.__explore()
         if len(self.radar_path) == 0:
-            # if self.__has_checked_all_announce():
-            #     self.__should_give_up = True
             return self.__make_a_move(0, 0)
         x, y = self.radar_path.pop(0)
         return self.__make_a_move(x, y)
@@ -106,7 +106,7 @@ class Seeker(Player):
         return True
 
     def visited_all(self):
-        if not self.__should_give_up and self.__visited_cells == self.__possible_cells:
+        if not self.__should_give_up and self.detected_coord == None and self.__visited_cells == self.__possible_cells:
             self.__should_give_up = True
         return self.__should_give_up
 
@@ -125,6 +125,8 @@ class Seeker(Player):
         cur_heuristic = -10000000
         for i in range(self.n):
             for j in range(self.m):
+                if self.map[i][j] in [Config.IMPOSSIBLE, Config.VERIFIED, Config.WALL, Config.OBS]:
+                    continue
                 if self.hmap[i][j] == Config.SIGNAL_HEURISTIC or self.map[i][j] not in [Config.IMPOSSIBLE, Config.VERIFIED, Config.WALL, Config.OBS]:
                     comp_heuristic = self.hmap[i][j] * 10 - abs(self.cur_x - i) - abs(self.cur_y - j)
                     if comp_heuristic > cur_heuristic:
@@ -132,12 +134,12 @@ class Seeker(Player):
                         x, y = i, j
         if x == None and y == None:
             self.__should_give_up = True
-        print("afdasfasfasf {}, {}".format(x, y))
         self.radar_path = self.__find_path(x, y)
 
     def __scan_verify(self):
         self.obs_list = []
         self.list_notify = []
+        self.hmap[self.cur_x][self.cur_y] = 0
         self.__adj_non_empty = 0
         for i in range(self.cur_x - self.obs_range, self.cur_x + self.obs_range + 1):
             for j in range(self.cur_y - self.obs_range, self.cur_y + self.obs_range + 1):
@@ -199,7 +201,7 @@ class Seeker(Player):
                 for j in range(y - 3, y + 4):
                     if not self.is_in_range(i, j):
                         continue
-                    if (self.map[i][j] not in [Config.VERIFIED, Config.WALL, Config.OBS]):
+                    if (self.map[i][j] not in [Config.IMPOSSIBLE, Config.VERIFIED, Config.WALL, Config.OBS]):
                         self.hmap[i][j] = Config.SIGNAL_HEURISTIC
 
     def __is_hearable(self, x, y):

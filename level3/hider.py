@@ -76,9 +76,9 @@ class Hider(Player):
             self.__prev_cur_dest = self.__cur_dest
             self.__update_destination()
         x, y = self.__cur_path[self.__cur_step]
-        print()
-        print("Destination: "+str(self.__cur_dest))
-        print("Current: {:d}, {:d}".format(self.cur_x, self.cur_y))
+        #print()
+        #print("Destination: "+str(self.__cur_dest))
+        #print("Current: {:d}, {:d}".format(self.cur_x, self.cur_y))
         dx, dy = x - self.cur_x, y - self.cur_y
         self.cur_x, self.cur_y = x, y
         self.__update_observable_range()
