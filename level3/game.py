@@ -117,6 +117,20 @@ class Game:
         self.__gui.update_map(self.__map)
         self.__turn += 1
         self.__check_met_hider()
+        self.__notify_hiders()
+
+    def __notify_hiders(self):
+        for hider in self.__hiders:
+            if hider == None:
+                continue
+            is_regconized = False
+            for hider_x, hider_y in self.__seeker.list_notify:
+                if hider.cur_x == hider_x and hider.cur_y == hider_y:
+                    is_regconized = True
+                    hider.update_seeker_pos(self.__seeker.cur_x, self.__seeker.cur_y)
+            hider.is_regconized = is_regconized
+        #print("Seeker notify x: {:d}, y: {:d}".format(self.__seeker.cur_x, self.__seeker.cur_y))
+                
 
     def overlap_hider(self, i, j, index):
         for k in range(len(self.__hiders)):
