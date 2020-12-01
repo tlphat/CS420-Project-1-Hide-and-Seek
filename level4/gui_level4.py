@@ -190,7 +190,7 @@ class Gui:
         self.__announce.append((x, y, turn))
 
     def call_back_announce(self):
-        for x, y, turn in self.__announce:
+        for _, _, turn in self.__announce:
             self.__game_canvas.after(turn * self.__time_delay, self.handle_announce)
             self.__game_canvas.after((turn + 1) * self.__time_delay, self.eliminate_announce)
 

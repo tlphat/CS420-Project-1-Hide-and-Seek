@@ -73,6 +73,10 @@ class Game:
         self.__point -= int(x != 0 or y != 0)
         self.__map[self.__seeker.cur_x - x][self.__seeker.cur_y - y] = Config.EMPTY
         self.__map[self.__seeker.cur_x][self.__seeker.cur_y] = Config.SEEKER
+        for i in range(len(self.__hiders)):
+            if self.__hiders[i] != None:
+                self.__hiders[i].map[self.__seeker.cur_x - x][self.__seeker.cur_y - y] = Config.EMPTY
+                self.__hiders[i].map[self.__seeker.cur_x][self.__seeker.cur_y] = Config.SEEKER
 
     def make_hider_move(self, is_debug):
         index_hider_move = self.__is_turn_of_hider_number()
@@ -116,7 +120,7 @@ class Game:
             self.__gui.update_map(self.__map)
         self.__turn += 1
         self.__check_met_hider(is_debug)
-        self.__notify_hiders()
+        #self.__notify_hiders()
 
     def __notify_hiders(self):
         for hider in self.__hiders:

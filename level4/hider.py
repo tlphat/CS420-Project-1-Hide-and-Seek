@@ -13,10 +13,16 @@ class Hider(Player):
         self.cur_x, self.cur_y = init_pos
         self.__cur_step = None
         self.__init_seeker_heuristic_map()
-        self.__approximate_seeker_delay = 7
+        self.__approximate_seeker_delay = 30
+        self.is_regconized = False
+        self.seeker_coord = None
+        self.__prev_cur_dest = None
         # self.__update_destination()
         self.obs_list = [] # list of current observable cells
 #        self.__navigate()
+
+    def update_seeker_pos(self, x, y):
+        self.__seeker_init_pos = x,y
 
     def __navigate(self):
         for i in range(self.n):
@@ -49,16 +55,37 @@ class Hider(Player):
         self.__cur_dest = self.__find_dest((self.cur_x, self.cur_y))
         self.__cur_step = 0
 
+    def __should_stay(self, turn):
+        if turn < self.__BFS_seeker_map[self.cur_x][self.cur_y] + self.__approximate_seeker_delay:
+            return True
+        if self.hmap[self.cur_x][self.cur_y] > 2:
+            return True
+        return False
+
+    def __run(self):
+        self.__init_seeker_heuristic_map()
+        self.__update_destination()
+
+    def check_for_seeker(self):
+        for i in range(self.cur_x - self.obs_range, self.cur_x + self.obs_range + 1):
+            for j in range(self.cur_y - self.obs_range, self.cur_y + self.obs_range + 1):
+                if i >= 0 and i < self.n and j >= 0 and j < self.m and self.is_observable(i, j) and self.map[i][j] == Config.SEEKER:
+                    self.is_regconized, self.seeker_coord = True, (i, j)
+                    return
+        self.is_regconized, self.seeker_coord = False, None
+
     def move(self, turn):
-        if self.__cur_dest == (self.cur_x, self.cur_y):
-            # print("turn: {:d}, BFSseeker: {:d}".format(turn, self.__BFS_seeker_map[self.cur_x][self.cur_y]))
-            if turn > self.__BFS_seeker_map[self.cur_x][self.cur_y] + self.__approximate_seeker_delay: #TODO: fix when hiders move
+        self.check_for_seeker()
+        if self.is_regconized:
+            self.__run()
+            if turn % 2 != 0:
                 return (0, 0)
+        if self.__cur_dest == (self.cur_x, self.cur_y):
+            if self.__should_stay(turn) == True: 
+                return (0, 0)
+            self.__prev_cur_dest = self.__cur_dest
             self.__update_destination()
         x, y = self.__cur_path[self.__cur_step]
-        print()
-        print("Destination: "+str(self.__cur_dest))
-        print("Current: {:d}, {:d}".format(self.cur_x, self.cur_y))
         dx, dy = x - self.cur_x, y - self.cur_y
         self.cur_x, self.cur_y = x, y
         self.__update_observable_range()
@@ -80,7 +107,16 @@ class Hider(Player):
         return ((x2 - x1)**2 + (y2 - y1)**2)
 
     def __heuristic_value(self, src, i, j):
-        return 10 * self.hmap[i][j] - self.__mahattan_distance(src, (i,j)) + 5*self.__BFS_seeker_map[i][j]
+        k_h = 15
+        k_m = 10
+        k_s = 1
+        res = 0
+        if (self.is_regconized == True):
+            k_h = 0
+            k_m = 5
+            k_s = 15
+            #res += 50 * self.__mahattan_distance(src, self.seeker_coord)
+        return res + k_h * self.hmap[i][j] - k_m * self.__mahattan_distance(src, (i,j)) + k_s * self.__BFS_seeker_map[i][j]
 
     def __find_dest(self, src):
 
@@ -94,7 +130,7 @@ class Hider(Player):
         dest = []
         for i in range(self.n):
             for j in range(self.m):
-                if i != self.cur_x and j != self.cur_y:
+                if i != self.cur_x and j != self.cur_y and (i, j) != self.__prev_cur_dest and self.isAccessable(i, j):
                     heapq.heappush(dest, DestEntry((i,j), self.__heuristic_value(src, i,j)))
 
         while len(dest) != 0:
@@ -109,12 +145,12 @@ class Hider(Player):
             return False
         if y < 0 or y >= self.m:
             return False
-        if self.map[x][y] in [Config.WALL, Config.OBS, Config.HIDER]: #TODO: remove HIDER when gui fixed
+        if self.map[x][y] in [Config.WALL, Config.OBS]: #TODO: remove HIDER when gui fixed
             return False
         return True
 
     def __BFS(self, src, des):
-        path = [[-1, -1] * self.m for _ in range(self.n)]
+        path = [[(-1, -1)] * self.m for _ in range(self.n)]
         q = Queue()
         visited = [[False] * self.m for _ in range(self.n)]
         visited[self.cur_x][self.cur_y] = True
@@ -137,6 +173,8 @@ class Hider(Player):
         x,y = des
         if BFS_path != None:
             while BFS_path[x][y] != src:
+                if (BFS_path[x][y] == (-1, -1)):
+                    exit(0)
                 temp_path.append(BFS_path[x][y])
                 x, y = BFS_path[x][y]
             temp_path.reverse()

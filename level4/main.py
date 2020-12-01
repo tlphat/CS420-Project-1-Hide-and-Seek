@@ -1,5 +1,5 @@
 from defines import Config
-from gui_level3 import Gui
+from gui_level4 import Gui
 from game import Game
 import copy
 import random
@@ -22,8 +22,8 @@ if __name__ == "__main__":
     parse_argument()
     running_time = time.time()
     gui = Gui()
-    game = Game(gui)
-    game.read_input(map_name)
+    game = Game(gui, debug_mode)
+    game.read_input(map_name, debug_mode)
     game.operate(debug_mode)
     running_time = (time.time() - running_time) * 1000
     if debug_mode:

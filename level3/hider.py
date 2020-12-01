@@ -15,6 +15,7 @@ class Hider(Player):
         self.__init_seeker_heuristic_map()
         self.__approximate_seeker_delay = 30
         self.is_regconized = False
+        self.seeker_coord = None
         self.__prev_cur_dest = None
         # self.__update_destination()
         self.obs_list = [] # list of current observable cells
@@ -65,8 +66,17 @@ class Hider(Player):
         self.__init_seeker_heuristic_map()
         self.__update_destination()
 
+    def check_for_seeker(self):
+        for i in range(self.cur_x - self.obs_range, self.cur_x + self.obs_range + 1):
+            for j in range(self.cur_y - self.obs_range, self.cur_y + self.obs_range + 1):
+                if i >= 0 and i < self.n and j >= 0 and j < self.m and self.is_observable(i, j) and self.map[i][j] == Config.SEEKER:
+                    self.is_regconized, self.seeker_coord = True, (i, j)
+                    return
+        self.is_regconized, self.seeker_coord = False, None
+
     def move(self, turn):
-        if self.is_regconized == True:
+        self.check_for_seeker()
+        if self.is_regconized:
             self.__run()
             if turn % 2 != 0:
                 return (0, 0)
@@ -103,11 +113,13 @@ class Hider(Player):
         k_h = 15
         k_m = 10
         k_s = 1
+        res = 0
         if (self.is_regconized == True):
             k_h = 0
             k_m = 5
             k_s = 15
-        return k_h * self.hmap[i][j] - k_m * self.__mahattan_distance(src, (i,j)) + k_s * self.__BFS_seeker_map[i][j]
+            #res += 50 * self.__mahattan_distance(src, self.seeker_coord)
+        return res + k_h * self.hmap[i][j] - k_m * self.__mahattan_distance(src, (i,j)) + k_s * self.__BFS_seeker_map[i][j]
 
     def __find_dest(self, src):
 

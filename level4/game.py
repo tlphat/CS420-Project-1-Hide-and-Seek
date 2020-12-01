@@ -3,7 +3,7 @@ from seeker import Seeker
 from hider import Hider
 
 class Game:
-    def __init__(self, gui):
+    def __init__(self, gui, is_debug):
         self.__map = self.__n = self.__m = None
         self.__range_seek = Config.RANGE_SEEKER
         self.__range_hide = Config.RANGE_HIDER
@@ -11,32 +11,33 @@ class Game:
         self.__num_hiders = 0
         self.__hiders = []
 
-    def read_input(self, map_name):
+    def read_input(self, map_name, is_debug):
         fin = open("../map/" + map_name + ".txt", "r")
         self.__n, self.__m = [int(x) for x in fin.readline().split(" ")]
         self.__read_map(fin)
         self.__read_obstacles(fin)
-        self.__gui.read_config(self.__map)
+        if not is_debug:
+            self.__gui.read_config(self.__map)
         self.__init_players()
         fin.close()
 
-    def scan_for_agents_pos(self):
-        hiders_coords, seeker_coord = [], None
+    def __get_agent_coord(self):
+        seeker_coord, hider_coords = None, []
         for i in range(self.__n):
             for j in range(self.__m):
                 if self.__map[i][j] == Config.SEEKER:
-                    seeker_coord = i, j
+                    seeker_coord = (i, j)
                 elif self.__map[i][j] == Config.HIDER:
-                    hiders_coords.append((i,j))
+                    hider_coords.append((i, j))
                     self.__num_hiders += 1
-        return hiders_coords, seeker_coord
+        return seeker_coord, hider_coords
 
     def __init_players(self):
-        hiders_coords, seeker_coord = self.scan_for_agents_pos()
+        seeker_coord, hiders_coords = self.__get_agent_coord()
+        self.__hiders = ([Hider(self.__map, self.__n, self.__m, self.__range_hide, hider_coord, seeker_coord) 
+            for hider_coord in hiders_coords])
         self.__seeker = Seeker(self.__map, self.__n, self.__m, self.__range_seek, seeker_coord)
-        self.__seeker.num_hiders = self.__num_hiders
-        self.__hiders = ([Hider(self.__map, self.__n, self.__m, self.__range_hide, hiders_coords[i], seeker_coord) 
-            for i in range(self.__num_hiders)])
+        self.__seeker.update_num_hiders(self.__num_hiders)
 
     def __read_map(self, fin):
         self.__map = [[int(x) for x in fin.readline().split(" ")] for i in range(self.__n)]
@@ -73,8 +74,12 @@ class Game:
         self.__point -= int(x != 0 or y != 0)
         self.__map[self.__seeker.cur_x - x][self.__seeker.cur_y - y] = Config.EMPTY
         self.__map[self.__seeker.cur_x][self.__seeker.cur_y] = Config.SEEKER
+        for i in range(len(self.__hiders)):
+            if self.__hiders[i] != None:
+                self.__hiders[i].map[self.__seeker.cur_x - x][self.__seeker.cur_y - y] = Config.EMPTY
+                self.__hiders[i].map[self.__seeker.cur_x][self.__seeker.cur_y] = Config.SEEKER
 
-    def make_hider_move(self):
+    def make_hider_move(self, is_debug):
         index_hider_move = self.__is_turn_of_hider_number()
         current_hider = self.__hiders[index_hider_move]
         if current_hider != None:
@@ -86,13 +91,14 @@ class Game:
             if current_hider.should_announced(self.__compute_hider_turn(index_hider_move)):
                 x, y = current_hider.announce()
                 self.__seeker.signal_announce(x, y)
-                self.__gui.send_signal_announce((x, y), self.__turn)
+                if not is_debug:
+                    self.__gui.send_signal_announce((x, y), self.__turn)
 
     def operate(self, is_debug):
         self.__turn, self.__point = (1, 0)
         self.__winner = Config.HIDER
         while True:
-            if self.__hiders_found():
+            if self.__hiders_found() and (self.__turn - 1) % (self.__num_hiders + 1) == 1:
                 self.__winner = Config.SEEKER
                 break
             if self.__seeker.visited_all():
@@ -100,8 +106,8 @@ class Game:
             if self.__is_seeker_turn():
                 self.make_seeker_move()
             else:
-                self.make_hider_move()
-            self.update_game_info()
+                self.make_hider_move(is_debug)
+            self.update_game_info(is_debug)
         if not is_debug:
             self.__gui.visualize()
         if (self.__winner == Config.SEEKER):
@@ -109,15 +115,23 @@ class Game:
         else:
             print("Hiders win")
         print("Point: {:d}".format(self.__point))
-        for i in range(len(self.__seeker.map)):
-            for j in range(len(self.__seeker.map[i])):
-                print(str(self.__seeker.map[i][j]), end = " ")
-            print()
 
-    def update_game_info(self):
-        self.__gui.update_map(self.__map)
+    def update_game_info(self, is_debug):
+        if not is_debug:
+            self.__gui.update_map(self.__map)
         self.__turn += 1
-        self.__check_met_hider()
+        self.__check_met_hider(is_debug)
+
+    def __notify_hiders(self):
+        for hider in self.__hiders:
+            if hider == None:
+                continue
+            is_regconized = False
+            for hider_x, hider_y in self.__seeker.list_notify:
+                if hider.cur_x == hider_x and hider.cur_y == hider_y:
+                    is_regconized = True
+                    hider.update_seeker_pos(self.__seeker.cur_x, self.__seeker.cur_y)
+            hider.is_regconized = is_regconized
 
     def overlap_hider(self, i, j, index):
         for k in range(len(self.__hiders)):
@@ -127,12 +141,15 @@ class Game:
                         return True
         return False
 
-    def __check_met_hider(self):
+    def __check_met_hider(self, is_debug):
         found_somehider = False
         for i in range(len(self.__hiders)):
             hider = self.__hiders[i]
             if hider != None:
                 if self.__seeker.meet(hider):
+                    if is_debug:
+                        print("found hider at {} {}".format(self.__seeker.cur_x, self.__seeker.cur_y))
+                        print(self.__turn)
                     self.__point += 20
                     x, y = hider.cur_x, hider.cur_y
                     if not self.overlap_hider(x, y, i):
@@ -146,6 +163,7 @@ class Game:
     def reset_seeker_info(self):
         self.__seeker.detected_coord = None
         self.__seeker.radar_path = []
+        self.__seeker.announce = None
         self.__seeker.init_heuristic_map()
         self.__seeker.reset_verified_map()
 
