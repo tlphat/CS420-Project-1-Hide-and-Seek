@@ -89,9 +89,15 @@ class Seeker(Player):
             return (0, 0)
         if not self.__has_seen_announce():
             self.__cross_out_redundant_path()
+        if self.__has_checked_all_announce():
+            self.__should_give_up = True
+            return self.__make_a_move(0, 0)
         if len(self.radar_path) == 0:
             self.__explore()
         if len(self.radar_path) == 0:
+            # if self.__has_checked_all_announce():
+            #     print("now i give up")
+            #     self.__should_give_up = True
             return self.__make_a_move(0, 0)
         x, y = self.radar_path.pop(0)
         return self.__make_a_move(x, y)

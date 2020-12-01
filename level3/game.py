@@ -93,11 +93,10 @@ class Game:
         self.__turn, self.__point = (1, 0)
         self.__winner = Config.HIDER
         while True:
-            if self.__hiders_found():
+            if self.__hiders_found() and (self.__turn - 1) % (self.__num_hiders + 1) == 1:
                 self.__winner = Config.SEEKER
                 break
             if self.__seeker.visited_all():
-                print("here")
                 break
             if self.__is_seeker_turn():
                 self.make_seeker_move()
