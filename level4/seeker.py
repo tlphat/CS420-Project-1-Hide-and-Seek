@@ -3,8 +3,8 @@ from player import Player
 import copy
 
 class Seeker(Player):
-    def __init__(self, map, n, m, obs_range, init_pos):
-        super().__init__(map, n, m, obs_range, init_pos)
+    def __init__(self, map, n, m, obs_range, init_pos, obs):
+        super().__init__(map, n, m, obs_range, init_pos, obs)
         self.detected_coord = self.announce = None
         self.path = []
         self.radar_path = []
@@ -77,6 +77,8 @@ class Seeker(Player):
             self.map[curx][cury] = Config.HIDER
 
     def move(self, turn):
+        if self.is_pregame(turn):
+            return self.__make_a_move(0, 0)
         if self.__found_hider():
             x, y = self.detected_coord
             self.path = copy.deepcopy(self.__find_path(x, y))

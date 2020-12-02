@@ -2,14 +2,31 @@ from defines import Config
 import copy
 
 class Player:
-    def __init__(self, map, n, m, obs_range, init_pos):
+    def __init__(self, map, n, m, obs_range, init_pos, obs):
         self.n, self.m, self.obs_range = n, m, obs_range
         self.map = copy.deepcopy(map)
         self.cur_x, self.cur_y = init_pos
         self.init_heuristic_map()
+        self.obs = copy.deepcopy(obs)
 
     def is_in_range(self, x, y):
         return x >= 0 and x < self.n and y >= 0 and y < self.m
+
+    def push(self, obs_id, direction):
+        x, y = direction
+        for ox, oy in self.obs[obs_id]:
+            nx, ny = ox + x, oy + y
+            if self.map[nx][ny] in [Config.WALL, Config.OBS, Config.SEEKER, Config.HIDER]:
+                return False # not pushable
+        for ox, oy in self.obs[obs_id]:
+            nx, ny = ox + x, oy + y
+            self.map[ox][oy] = Config.VERIFIED
+            self.map[nx][ny] = Config.OBS
+            self.obs[obs_id] = (nx, ny)
+        return True
+
+    def is_pregame(self, turn):
+        return turn == -1
 
     def is_observable(self, i, j):
         x, y = self.cur_x, self.cur_y

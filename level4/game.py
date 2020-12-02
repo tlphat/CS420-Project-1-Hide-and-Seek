@@ -10,6 +10,7 @@ class Game:
         self.__gui = gui
         self.__num_hiders = 0
         self.__hiders = []
+        self.__obs = []
 
     def read_input(self, map_name, is_debug):
         fin = open("../map/" + map_name + ".txt", "r")
@@ -34,9 +35,9 @@ class Game:
 
     def __init_players(self):
         seeker_coord, hiders_coords = self.__get_agent_coord()
-        self.__hiders = ([Hider(self.__map, self.__n, self.__m, self.__range_hide, hider_coord, seeker_coord) 
+        self.__hiders = ([Hider(self.__map, self.__n, self.__m, self.__range_hide, hider_coord, seeker_coord, self.__obs) 
             for hider_coord in hiders_coords])
-        self.__seeker = Seeker(self.__map, self.__n, self.__m, self.__range_seek, seeker_coord)
+        self.__seeker = Seeker(self.__map, self.__n, self.__m, self.__range_seek, seeker_coord, self.__obs)
         self.__seeker.update_num_hiders(self.__num_hiders)
 
     def __read_map(self, fin):
@@ -46,9 +47,12 @@ class Game:
         line = fin.readline()
         while (line != ""):
             x_tl, y_tl, x_br, y_br = [int(x) for x in line.split(" ")]
+            new_obs = []
             for i in range(x_tl, x_br + 1):
                 for j in range(y_tl, y_br + 1):
                     self.__map[i][j] = Config.OBS
+                    new_obs.append((i, j))
+            self.__obs.append(new_obs)
             line = fin.readline()
 
     def __is_seeker_turn(self):
@@ -58,10 +62,16 @@ class Game:
         return (self.__turn % (self.__num_hiders + 1) - 2) % (self.__num_hiders + 1)
 
     def __compute_seeker_turn(self):
-        return (self.__turn - 1) // (self.__num_hiders + 1) + 1
+        res = (self.__turn - 1) // (self.__num_hiders + 1) + 1
+        if (res < Config.PREGAME_TURN):
+            res = -1
+        return res
 
     def __compute_hider_turn(self, index):
-        return (self.__turn - (index + 2)) // (self.__num_hiders + 1) + 1
+        res = (self.__turn - (index + 2)) // (self.__num_hiders + 1) + 1
+        if res < Config.PREGAME_TURN:
+            res = -1
+        return res
 
     def __hiders_found(self):
         for i in range(len(self.__hiders)):
@@ -94,14 +104,22 @@ class Game:
                 if not is_debug:
                     self.__gui.send_signal_announce((x, y), self.__turn)
 
+    def __is_time_out(self):
+        return self.__turn >= Config.TIME_LIMIT
+
     def operate(self, is_debug):
         self.__turn, self.__point = (1, 0)
         self.__winner = Config.HIDER
+        message = ""
         while True:
             if self.__hiders_found() and (self.__turn - 1) % (self.__num_hiders + 1) == 1:
                 self.__winner = Config.SEEKER
                 break
+            if self.__is_time_out():
+                message = "Time out"
+                break
             if self.__seeker.visited_all():
+                message = "Seeker gives up"
                 break
             if self.__is_seeker_turn():
                 self.make_seeker_move()
@@ -113,7 +131,7 @@ class Game:
         if (self.__winner == Config.SEEKER):
             print("Seeker win")
         else:
-            print("Hiders win")
+            print(message + ", hiders win")
         print("Point: {:d}".format(self.__point))
 
     def update_game_info(self, is_debug):

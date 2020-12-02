@@ -118,7 +118,7 @@ class Hider(Player):
             k_h = 0
             k_m = 5
             k_s = 15
-            #res += 50 * self.__mahattan_distance(src, self.seeker_coord)
+            res += 50 * self.__mahattan_distance(src, self.seeker_coord)
         return res + k_h * self.hmap[i][j] - k_m * self.__mahattan_distance(src, (i,j)) + k_s * self.__BFS_seeker_map[i][j]
 
     def __find_dest(self, src):

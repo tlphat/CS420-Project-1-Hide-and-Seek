@@ -6,8 +6,8 @@ import copy
 import random
 
 class Hider(Player):
-    def __init__(self, map, n, m, obs_range, init_pos, seeker_init_pos):
-        super().__init__(map, n, m, obs_range, init_pos)
+    def __init__(self, map, n, m, obs_range, init_pos, seeker_init_pos, obs):
+        super().__init__(map, n, m, obs_range, init_pos, obs)
         self.__seeker_init_pos = seeker_init_pos
         self.__cur_dest = init_pos
         self.cur_x, self.cur_y = init_pos
@@ -74,7 +74,15 @@ class Hider(Player):
                     return
         self.is_regconized, self.seeker_coord = False, None
 
+
+
+    def prepare(self):
+        return (0, 0)
+        # TODO: Implement later
+
     def move(self, turn):
+        if self.is_pregame(turn):
+            return self.prepare()
         self.check_for_seeker()
         if self.is_regconized:
             self.__run()
