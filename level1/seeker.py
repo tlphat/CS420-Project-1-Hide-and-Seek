@@ -125,6 +125,8 @@ class Seeker(Player):
         cur_heuristic = -10000000
         for i in range(self.n):
             for j in range(self.m):
+                if self.map[i][j] in [IMPOSSIBLE, VERIFIED, WALL, OBS]:
+                    continue
                 if self.hmap[i][j] == SIGNAL_HEURISTIC or self.map[i][j] not in [IMPOSSIBLE, VERIFIED, WALL, OBS]:
                     comp_heuristic = self.hmap[i][j] * 100 - abs(self.cur_x - i) - abs(self.cur_y - j)
                     if comp_heuristic > cur_heuristic:
