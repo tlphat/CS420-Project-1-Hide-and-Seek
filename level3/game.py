@@ -3,12 +3,13 @@ from seeker import Seeker
 from hider import Hider
 
 class Game:
-    def __init__(self, gui, is_debug):
+    def __init__(self, gui, is_debug, level):
         self.__map = self.__n = self.__m = None
         self.__range_seek = Config.RANGE_SEEKER
         self.__range_hide = Config.RANGE_HIDER
         self.__gui = gui
         self.__num_hiders = 0
+        self.__level = level
 
     def read_input(self, map_name, is_debug):
         fin = open("../map/" + map_name + ".txt", "r")
@@ -82,11 +83,14 @@ class Game:
         index_hider_move = self.__is_turn_of_hider_number()
         current_hider = self.__hiders[index_hider_move]
         if current_hider != None:
-            x, y = current_hider.move(self.__compute_hider_turn(index_hider_move))
-            self.__seeker.update_hider_pos(current_hider.cur_x, current_hider.cur_y, x, y)
-            if not self.overlap_hider(self.__hiders[index_hider_move].cur_x - x, self.__hiders[index_hider_move].cur_y - y, index_hider_move):
-                self.__map[self.__hiders[index_hider_move].cur_x - x][self.__hiders[index_hider_move].cur_y - y] = Config.EMPTY
-            self.__map[self.__hiders[index_hider_move].cur_x][self.__hiders[index_hider_move].cur_y] = Config.HIDER
+            if self.__level > 2:
+                x, y = current_hider.move(self.__compute_hider_turn(index_hider_move))
+                self.__seeker.update_hider_pos(current_hider.cur_x, current_hider.cur_y, x, y)
+                
+                if not self.overlap_hider(self.__hiders[index_hider_move].cur_x - x, self.__hiders[index_hider_move].cur_y - y, index_hider_move):
+                    self.__map[self.__hiders[index_hider_move].cur_x - x][self.__hiders[index_hider_move].cur_y - y] = Config.EMPTY
+                self.__map[self.__hiders[index_hider_move].cur_x][self.__hiders[index_hider_move].cur_y] = Config.HIDER
+            
             if current_hider.should_announced(self.__compute_hider_turn(index_hider_move)):
                 x, y = current_hider.announce()
                 self.__seeker.signal_announce(x, y)
