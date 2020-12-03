@@ -3,8 +3,8 @@ from player import Player
 import copy
 
 class Seeker(Player):
-    def __init__(self, map, n, m, obs_range, init_pos, obs):
-        super().__init__(map, n, m, obs_range, init_pos, obs)
+    def __init__(self, map, n, m, obs_range, init_pos):
+        super().__init__(map, n, m, obs_range, init_pos)
         self.detected_coord = self.announce = None
         self.path = []
         self.radar_path = []
@@ -37,8 +37,7 @@ class Seeker(Player):
             self.__possible_cells += 1
             for dx, dy in Config.DIR:
                 nxt_x, nxt_y = tmp_x + dx, tmp_y + dy
-                if (self.is_in_range(nxt_x, nxt_y) and not visited_map[nxt_x][nxt_y] and 
-                    self.map[nxt_x][nxt_y] not in [Config.WALL, Config.OBS]):
+                if self.is_in_range(nxt_x, nxt_y) and not visited_map[nxt_x][nxt_y] and self.map[nxt_x][nxt_y] not in [Config.WALL, Config.OBS]:
                     queue.append((nxt_x, nxt_y))
                     visited_map[nxt_x][nxt_y] = True
         self.__mark_unreachable_cell(visited_map)
@@ -66,8 +65,7 @@ class Seeker(Player):
         return self.announce != None
 
     def __is_turn_to_move(self, turn):
-        #return turn != 1 and turn % 5 == 1
-        return True
+        return turn != 1 and turn % 5 == 1
 
     def __found_hider(self):
         return self.detected_coord != None
@@ -78,9 +76,6 @@ class Seeker(Player):
             self.map[curx][cury] = Config.HIDER
 
     def move(self, turn):
-        # TODO: uncomment the next two lines to test
-        # if self.is_pregame(turn):
-        #     return self.__make_a_move(0, 0)
         if self.__found_hider():
             x, y = self.detected_coord
             self.path = copy.deepcopy(self.__find_path(x, y))
@@ -138,8 +133,7 @@ class Seeker(Player):
             for j in range(self.m):
                 if self.map[i][j] in [Config.IMPOSSIBLE, Config.VERIFIED, Config.WALL, Config.OBS]:
                     continue
-                if (self.hmap[i][j] == Config.SIGNAL_HEURISTIC or self.map[i][j] not in 
-                    [Config.IMPOSSIBLE, Config.VERIFIED, Config.WALL, Config.OBS]):
+                if self.hmap[i][j] == Config.SIGNAL_HEURISTIC or self.map[i][j] not in [Config.IMPOSSIBLE, Config.VERIFIED, Config.WALL, Config.OBS]:
                     comp_heuristic = self.hmap[i][j] * 10 - abs(self.cur_x - i) - abs(self.cur_y - j)
                     if comp_heuristic > cur_heuristic:
                         cur_heuristic = comp_heuristic

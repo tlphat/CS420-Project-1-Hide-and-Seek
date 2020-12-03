@@ -68,6 +68,7 @@ class Game:
         else:
             print("Hider(s) win")
         print("Point: {:d}".format(self.__point))
+        print("Turns taken: {}".format(self.__turn))
 
     def check_observable(self, i, j):
         print(self.__seeker.is_observable(i, j))

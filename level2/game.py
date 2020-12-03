@@ -114,6 +114,7 @@ class Game:
         else:
             print("Hiders win")
         print("Point: {:d}".format(self.__point))
+        print("Turns taken: {}".format(self.__turn))
 
     def update_game_info(self, is_debug):
         if not is_debug:

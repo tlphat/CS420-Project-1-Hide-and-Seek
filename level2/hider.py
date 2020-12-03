@@ -6,8 +6,8 @@ import copy
 import random
 
 class Hider(Player):
-    def __init__(self, map, n, m, obs_range, init_pos, seeker_init_pos, obs):
-        super().__init__(map, n, m, obs_range, init_pos, obs)
+    def __init__(self, map, n, m, obs_range, init_pos, seeker_init_pos):
+        super().__init__(map, n, m, obs_range, init_pos)
         self.__seeker_init_pos = seeker_init_pos
         self.__cur_dest = init_pos
         self.cur_x, self.cur_y = init_pos
@@ -19,12 +19,7 @@ class Hider(Player):
         self.__prev_cur_dest = None
         # self.__update_destination()
         self.obs_list = [] # list of current observable cells
-        self.prepare_path = [] # store moving path in pre-game session
-        self.pregame_should_move = True
-        self.finish_prepare = False
 #        self.__navigate()
-        self.BFS_map = self.BFS_full_map()
-        self.init_heuristic_map()
 
     def update_seeker_pos(self, x, y):
         self.__seeker_init_pos = x,y
@@ -54,7 +49,7 @@ class Hider(Player):
                 q.put([ux, uy, cost + 1])
 
     def should_announced(self, turn):
-        return turn > Config.PREGAME_TURN and turn % 5 == 0
+        return turn % 5 == 0
 
     def __update_destination(self):
         self.__cur_dest = self.__find_dest((self.cur_x, self.cur_y))
@@ -79,103 +74,27 @@ class Hider(Player):
                     return
         self.is_regconized, self.seeker_coord = False, None
 
-    def make_a_move(self, dxy):
-        dx, dy = dxy
-        self.cur_x, self.cur_y = self.cur_x + dx, self.cur_y + dy
-        self.__cur_dest = (self.cur_x, self.cur_y)
-        self.__update_observable_range()
-        return dxy
-
-    def BFS_full_map(self):
-        res = [[-1] * self.m for _ in range(self.n)]
-
-        q = Queue()
-        q.put((self.cur_x, self.cur_y))
-        res[self.cur_x][self.cur_y] = 0
-
-        while not q.empty():
-            cx, cy = q.get_nowait()
-            cur_dist = res[cx][cy]
-
-            for dx, dy in Config.DIR:
-                nx, ny = cx + dx, cy + dy
-                if self.isAccessable(nx, ny) and res[nx][ny] == -1:
-                    q.put((nx, ny))
-                    res[nx][ny] = cur_dist + 1
-        return res
-
-    def seeker_is_reachable(self):
-        x, y = self.__seeker_init_pos
-        return self.BFS_map[x][y] != -1
-
-    def choose_nearest_obstacle(self):
-        id = x = y = None
-        distance = Config.IMPOSSIBLE
-        for i in range(len(self.obs)):
-            for j in range(len(self.obs[i])):
-                cx, cy = self.obs[i][j]
-                if self.BFS_map[cx][cy] < distance:
-                    distance = self.BFS_map[cx][cy]
-                    id = i
-                    x, y = cx, cy
-        return id, distance, x, y
-
-    def should_move(self, distance, x, y):
-        return self.is_pregame(distance + self.__BFS_seeker_map[x][y])
-
-    def generate_path(self):
-        # TODO: self.prepare_path contains list of (dx, dy) towards self.obs[self.obs_id]
-        # e.g. self.prepare_path = [(0, 1), (0, 1)]
-        pass
-
-    def push_toward_seeker(self):
-        # TODO: push the nearby obstacle towards the seeker
-        return self.make_a_move((0, 0))
-
-    def prepare(self):
-        if not self.seeker_is_reachable():
-            return self.make_a_move((0, 0))
-
-        # go towards obstacle
-        if not self.pregame_should_move: # don't have enough time to setup
-            return self.make_a_move((0, 0))
-
-        if len(self.prepare_path) == 0: # have not decided yet
-            if self.finish_prepare: # has come to the obstacle position
-                return self.push_toward_seeker()
-
-            self.obs_id, distance, x, y = self.choose_nearest_obstacle()
-            if not self.should_move(distance, x, y): # too far to reach
-                self.pregame_should_move = False
-                return self.make_a_move((0, 0))
-
-            self.finish_prepare = True
-            self.generate_path()
-
-        if len(self.prepare_path) != 0:
-            return self.make_a_move(self.prepare_path.pop(0))
-        return self.make_a_move((0, 0))
-
     def move(self, turn):
-        # TODO: uncomment the next two lines to test
-        # if self.is_pregame(turn):
-        #     return self.prepare()
-        self.check_for_seeker()
-        if self.is_regconized:
-            self.__run()
-            if turn % 2 != 0:
-                return (0, 0)
-        if self.__cur_dest == (self.cur_x, self.cur_y):
-            if self.__should_stay(turn) == True: 
-                return (0, 0)
-            self.__prev_cur_dest = self.__cur_dest
-            self.__update_destination()
-        x, y = self.__cur_path[self.__cur_step]
-        dx, dy = x - self.cur_x, y - self.cur_y
-        self.cur_x, self.cur_y = x, y
-        self.__update_observable_range()
-        self.__cur_step += 1
-        return (dx, dy)
+        # self.check_for_seeker()
+        # if self.is_regconized:
+        #     self.__run()
+        #     if turn % 2 != 0:
+        #         return (0, 0)
+        # if self.__cur_dest == (self.cur_x, self.cur_y):
+        #     if self.__should_stay(turn) == True: 
+        #         return (0, 0)
+        #     self.__prev_cur_dest = self.__cur_dest
+        #     self.__update_destination()
+        # x, y = self.__cur_path[self.__cur_step]
+        # #print()
+        # #print("Destination: "+str(self.__cur_dest))
+        # #print("Current: {:d}, {:d}".format(self.cur_x, self.cur_y))
+        # dx, dy = x - self.cur_x, y - self.cur_y
+        # self.cur_x, self.cur_y = x, y
+        # self.__update_observable_range()
+        # self.__cur_step += 1
+        # return (dx, dy)
+        return (0, 0)
 
     def __update_observable_range(self):
         self.obs_list = []
@@ -192,7 +111,7 @@ class Hider(Player):
         return ((x2 - x1)**2 + (y2 - y1)**2)
 
     def __heuristic_value(self, src, i, j):
-        k_h = 20
+        k_h = 15
         k_m = 10
         k_s = 1
         res = 0
