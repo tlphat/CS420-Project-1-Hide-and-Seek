@@ -66,7 +66,8 @@ class Seeker(Player):
         return self.announce != None
 
     def __is_turn_to_move(self, turn):
-        return turn != 1 and turn % 5 == 1
+        #return turn != 1 and turn % 5 == 1
+        return True
 
     def __found_hider(self):
         return self.detected_coord != None

@@ -63,14 +63,10 @@ class Game:
 
     def __compute_seeker_turn(self):
         res = (self.__turn - 1) // (self.__num_hiders + 1) + 1
-        if (res < Config.PREGAME_TURN):
-            res = -1
         return res
 
     def __compute_hider_turn(self, index):
         res = (self.__turn - (index + 2)) // (self.__num_hiders + 1) + 1
-        if res < Config.PREGAME_TURN:
-            res = -1
         return res
 
     def __hiders_found(self):
@@ -105,7 +101,7 @@ class Game:
                     self.__gui.send_signal_announce((x, y), self.__turn)
 
     def __is_time_out(self):
-        return self.__turn >= Config.TIME_LIMIT
+        return self.__turn >= (self.__num_hiders + 1) * (self.__n * self.__m + Config.PREGAME_TURN)
 
     def operate(self, is_debug):
         self.__turn, self.__point = (1, 0)
@@ -133,6 +129,19 @@ class Game:
         else:
             print(message + ", hiders win")
         print("Point: {:d}".format(self.__point))
+
+    def obs_push(self, obs_id, direction):
+        x, y = direction
+        for ox, oy in self.__obs[obs_id]:
+            nx, ny = ox + x, oy + y
+            if self.__map[nx][ny] in [Config.WALL, Config.OBS, Config.SEEKER, Config.HIDER]:
+                return False # not pushable
+        for ox, oy in self.__obs[obs_id]:
+            nx, ny = ox + x, oy + y
+            self.__map[ox][oy] = Config.EMPTY
+            self.__map[nx][ny] = Config.OBS
+            self.__obs[obs_id] = (nx, ny)
+        return True
 
     def update_game_info(self, is_debug):
         if not is_debug:

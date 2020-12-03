@@ -26,7 +26,7 @@ class Player:
         return True
 
     def is_pregame(self, turn):
-        return turn == -1
+        return turn < Config.PREGAME_TURN
 
     def is_observable(self, i, j):
         x, y = self.cur_x, self.cur_y

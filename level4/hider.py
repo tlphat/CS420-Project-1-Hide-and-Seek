@@ -19,7 +19,12 @@ class Hider(Player):
         self.__prev_cur_dest = None
         # self.__update_destination()
         self.obs_list = [] # list of current observable cells
+        self.prepare_path = [] # store moving path in pre-game session
+        self.pregame_should_move = True
+        self.finish_prepare = False
 #        self.__navigate()
+        self.BFS_map = self.BFS_full_map()
+        self.init_heuristic_map()
 
     def update_seeker_pos(self, x, y):
         self.__seeker_init_pos = x,y
@@ -49,7 +54,7 @@ class Hider(Player):
                 q.put([ux, uy, cost + 1])
 
     def should_announced(self, turn):
-        return turn % 5 == 0
+        return turn > Config.PREGAME_TURN and turn % 5 == 0
 
     def __update_destination(self):
         self.__cur_dest = self.__find_dest((self.cur_x, self.cur_y))
@@ -74,11 +79,80 @@ class Hider(Player):
                     return
         self.is_regconized, self.seeker_coord = False, None
 
+    def make_a_move(self, dxy):
+        dx, dy = dxy
+        self.cur_x, self.cur_y = self.cur_x + dx, self.cur_y + dy
+        self.__cur_dest = (self.cur_x, self.cur_y)
+        self.__update_observable_range()
+        return dxy
 
+    def BFS_full_map(self):
+        res = [[-1] * self.m for _ in range(self.n)]
+
+        q = Queue()
+        q.put((self.cur_x, self.cur_y))
+        res[self.cur_x][self.cur_y] = 0
+
+        while not q.empty():
+            cx, cy = q.get_nowait()
+            cur_dist = res[cx][cy]
+
+            for dx, dy in Config.DIR:
+                nx, ny = cx + dx, cy + dy
+                if self.isAccessable(nx, ny) and res[nx][ny] == -1:
+                    q.put((nx, ny))
+                    res[nx][ny] = cur_dist + 1
+        return res
+
+    def seeker_is_reachable(self):
+        x, y = self.__seeker_init_pos
+        return self.BFS_map[x][y] != -1
+
+    def choose_nearest_obstacle(self):
+        id = x = y = None
+        distance = Config.IMPOSSIBLE
+        for i in range(len(self.obs)):
+            for j in range(len(self.obs[i])):
+                cx, cy = self.obs[i][j]
+                if self.BFS_map[cx][cy] < distance:
+                    distance = self.BFS_map[cx][cy]
+                    id = i
+                    x, y = cx, cy
+        return id, distance, x, y
+
+    def should_move(self, distance, x, y):
+        return self.is_pregame(distance + self.__BFS_seeker_map[x][y])
+
+    def generate_path(self, id):
+        self.prepare_path = [(0, 1), (0, 1)]
 
     def prepare(self):
-        return (0, 0)
-        # TODO: Implement later
+        if not self.seeker_is_reachable():
+            #print("stop line 130")
+            return self.make_a_move((0, 0))
+
+        if not self.pregame_should_move: # don't have enough time to setup
+            #print("stop line 134")
+            return self.make_a_move((0, 0))
+
+        if len(self.prepare_path) == 0: # have not decided yet
+            if self.finish_prepare: # finished his prepare
+                #print("stop line 139")
+                return self.make_a_move((0, 0))
+
+            id, distance, x, y = self.choose_nearest_obstacle()
+            if not self.should_move(distance, x, y): # too far to reach
+                self.pregame_should_move = False
+                #print("stop line 145")
+                return self.make_a_move((0, 0))
+
+            self.finish_prepare = True
+            #print("reach here")
+            self.generate_path(id)
+
+        if len(self.prepare_path) != 0:
+            return self.make_a_move(self.prepare_path.pop(0))
+        return self.make_a_move((0, 0))
 
     def move(self, turn):
         if self.is_pregame(turn):
@@ -115,7 +189,7 @@ class Hider(Player):
         return ((x2 - x1)**2 + (y2 - y1)**2)
 
     def __heuristic_value(self, src, i, j):
-        k_h = 15
+        k_h = 20
         k_m = 10
         k_s = 1
         res = 0
@@ -123,7 +197,7 @@ class Hider(Player):
             k_h = 0
             k_m = 5
             k_s = 15
-            #res += 50 * self.__mahattan_distance(src, self.seeker_coord)
+            res += 50 * self.__mahattan_distance(src, self.seeker_coord)
         return res + k_h * self.hmap[i][j] - k_m * self.__mahattan_distance(src, (i,j)) + k_s * self.__BFS_seeker_map[i][j]
 
     def __find_dest(self, src):
