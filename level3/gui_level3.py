@@ -31,6 +31,8 @@ class Gui:
         self.__img_overlap = ImageTk.PhotoImage(Image.open("../asset/overlap.jpg"))
         self.__img_hider_obs = ImageTk.PhotoImage(Image.open("../asset/hiderobs.jpg"))
 
+        
+
     def init_canvas(self):
         self.__windows_root = tkinter.Tk()
         self.__windows_root.title("Hide and Seek P2DK")

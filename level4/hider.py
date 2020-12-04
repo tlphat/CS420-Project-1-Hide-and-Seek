@@ -33,7 +33,7 @@ class Hider(Player):
         for i in range(self.n):
             for j in range(self.m):
                 if self.map[i][j] == Config.HIDER:
-                    self.cur_x, self.cur_y = i, j
+                        self.cur_x, self.cur_y = i, j
     
     def __init_seeker_heuristic_map(self):
         self.__BFS_seeker_map = [[-1] * self.m for _ in range(self.n)]
@@ -131,30 +131,135 @@ class Hider(Player):
     def push_toward_seeker(self):
         # TODO: push the nearby obstacle towards the seeker
         return self.make_a_move((0, 0))
+    
+    def is_obs_blocked_up(self, obs_id):
+        i, j = 0
+        while j < len(self.obs_list[obs_id]) and self.obs_list[obs_id][j][0] == self.obs_list[obs_id][i][0]: # cell of obs in same row
+            if self.isAccessable(self.obs_list[obs_id][j][0] - 1, self.obs_list[obs_id][j][1]):
+                return False
+            j += 1
+        return True
+            
+    def is_obs_blocked_down(self, obs_id):
+        i, j = 0
+        while j < len(self.obs_list[obs_id]) and self.obs_list[obs_id][j][0] == self.obs_list[obs_id][i][0]: # cell of obs in same row
+            if self.isAccessable(self.obs_list[obs_id][j][0] + 1, self.obs_list[obs_id][j][1]):
+                return False
+            j += 1
+        return True
+            
+    def is_obs_blocked_left(self, obs_id):
+        i, j = 0
+        
+        while j < len(self.obs_list[obs_id]) and self.obs_list[obs_id][j][0] == self.obs_list[obs_id][i][0]: # cell of obs in same row
+            if self.isAccessable(self.obs_list[obs_id][j][0] - 1, self.obs_list[obs_id][j][1]):
+                return False
+            j += 1
+        return True
+            
+    def is_obs_blocked_right(self, obs_id):
+        i, j = 0
+        while j < len(self.obs_list[obs_id]) and self.obs_list[obs_id][j][0] == self.obs_list[obs_id][i][0]: # cell of obs in same row
+            if self.isAccessable(self.obs_list[obs_id][j][0] - 1, self.obs_list[obs_id][j][1]):
+                return False
+            j += 1
+        return True
+        
+
+    def make_all_obs_become_wall_if_can(self):
+
+
+    def find_horizontal_obs_to_this_cell(self, x, y): # return id of nearist horizontal obs and path to cell (x, y)
+        best_path = None
+        id_best_path = None
+        for obs_id in range(len(self.obs_list)):
+            if self.obs_list[obs_id][0][0] == self.obs_list[obs_id][1][0]: # horizontal obs
+                new_path = self.can_obs_go_to_this_location(obs_id, x, y)
+                if new_path == None:
+                    continue
+                if best_path == None or len(best_path) > len(new_path):
+                    best_path = new_path
+                    id_best_path = obs_id
+        return id_best_path, best_path
+
+    def find_vertical_obs_to_this_cell(self, x, y): # return id of nearist vertical obs and path to cell (x, y)
+        best_path = None
+        id_best_path = None
+        for obs_id in range(len(self.obs_list)):
+            if self.obs_list[obs_id][0][1] == self.obs_list[obs_id][1][1]: # vertical obs
+                new_path = self.can_obs_go_to_this_location(obs_id, x, y)
+                if new_path == None:
+                    continue
+                if best_path == None or len(best_path) > len(new_path):
+                    best_path = new_path
+                    id_best_path = obs_id
+        return id_best_path, best_path
+
+    def can_obs_go_to_this_location(self, obs_id, x, y): # return None if cannot : path 
+        path = [[(-1, -1)] * self.m for _ in range(self.n)]
+        q = Queue()
+        visited = [[False] * self.m for _ in range(self.n)]
+        visited[self.obs_list[obs_id][0]][self.obs_list[obs_id][1]] = True
+        q.put(self.obs_list[obs_id])
+        while not q.empty():
+            x, y = q.get()
+            for dx, dy in Config.DIR:
+                ux, uy = x + dx, y + dy
+                if not visited[ux][uy]:
+                    check = True
+                    for cell in self.obs_list[obs_id]:
+                        if not self.isAccessable(ux - self.obs_list[obs_id][0] + cell[0], uy - self.obs_list[obs_id][1] + cell[1]): # need to check this
+                            check = False
+                            break
+                    
+                    if not check:
+                        continue
+
+                    visited[ux][uy] = True
+                    q.put((ux, uy))
+                    path[ux][uy] = x, y
+                if (ux, uy) == (x, y):
+                    return path
+        return None
+    
+    def can_this_cell_be_place_for_hider_to_hide_and_place_obs_around(self, x, y):
+        n
+        for dx, dy in Config.DIR:
+            if not self.isAccessable(x + dx, y + dy):
+                check = True
+                break
+        
+        if not Check:
+            return None
+
+        
 
     def prepare(self):
         if not self.seeker_is_reachable():
             return self.make_a_move((0, 0))
 
+        # maybe prepare time is over but its still time to lock down hider
         # go towards obstacle
-        if not self.pregame_should_move: # don't have enough time to setup
-            return self.make_a_move((0, 0))
+        # if not self.pregame_should_move: # don't have enough time to setup
+        #     return self.make_a_move((0, 0))
 
-        if len(self.prepare_path) == 0: # have not decided yet
-            if self.finish_prepare: # has come to the obstacle position
-                return self.push_toward_seeker()
+        # if len(self.prepare_path) == 0: # have not decided yet
+        #     if self.finish_prepare: # has come to the obstacle position
+        #         return self.push_toward_seeker()
 
-            self.obs_id, distance, x, y = self.choose_nearest_obstacle()
-            if not self.should_move(distance, x, y): # too far to reach
-                self.pregame_should_move = False
-                return self.make_a_move((0, 0))
+        #     self.obs_id, distance, x, y = self.choose_nearest_obstacle()
+        #     if not self.should_move(distance, x, y): # too far to reach
+        #         self.pregame_should_move = False
+        #         return self.make_a_move((0, 0))
 
-            self.finish_prepare = True
-            self.generate_path()
+        #     self.finish_prepare = True
+        #     self.generate_path()
 
-        if len(self.prepare_path) != 0:
-            return self.make_a_move(self.prepare_path.pop(0))
-        return self.make_a_move((0, 0))
+        # if len(self.prepare_path) != 0:
+        #     return self.make_a_move(self.prepare_path.pop(0))
+        # return self.make_a_move((0, 0))
+
+
 
     def move(self, turn):
         # TODO: uncomment the next two lines to test
