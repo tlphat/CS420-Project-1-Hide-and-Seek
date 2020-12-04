@@ -4,6 +4,7 @@ import copy
 
 class Seeker(Player):
     def __init__(self, map, n, m, obs_range, init_pos, obs):
+        self.general_game_map = map
         super().__init__(map, n, m, obs_range, init_pos, obs)
         self.detected_coord = self.announce = None
         self.path = []
@@ -15,6 +16,8 @@ class Seeker(Player):
         self.__should_give_up = False
         self.__scan_verify()
         self.list_notify = []
+        self.unreachable_obstacles = set()
+        self.obs_path = []
 
     def reset_verified_map(self):
         for i in range(len(self.map)):
@@ -28,6 +31,10 @@ class Seeker(Player):
         self.__num_hiders = num_hiders
 
     def __count_possible_cells(self):
+        visited_map = self.__bfs_for_unreachable()
+        self.__mark_unreachable_cell(visited_map)
+        
+    def __bfs_for_unreachable(self):
         self.__possible_cells = 0
         queue = [(self.cur_x, self.cur_y)]
         visited_map = [[False] * self.m for _ in range(self.n)]
@@ -41,8 +48,8 @@ class Seeker(Player):
                     self.map[nxt_x][nxt_y] not in [Config.WALL, Config.OBS]):
                     queue.append((nxt_x, nxt_y))
                     visited_map[nxt_x][nxt_y] = True
-        self.__mark_unreachable_cell(visited_map)
-        
+        return visited_map
+
     def __mark_unreachable_cell(self, visited_map):
         for i in range(self.n):
             for j in range(self.m):
@@ -59,8 +66,32 @@ class Seeker(Player):
     def __make_a_move(self, x, y):
         self.cur_x += x
         self.cur_y += y
+        self.__scan_impossible()
         self.__scan_verify()
         return (x, y)
+
+    def __scan_impossible(self):
+        cur_impossible = set()
+        for i in range(self.n):
+            for j in range(self.m):
+                if self.map[i][j] == Config.IMPOSSIBLE:
+                    cur_impossible.add((i, j))
+
+        visited_map = self.__bfs_for_unreachable()
+        nxt_impossible = set()
+        for i in range(self.n):
+            for j in range(self.m):
+                if not visited_map[i][j]:
+                    nxt_impossible.add((i, j))
+
+        update_set = set()
+        for x in cur_impossible:
+            if x not in nxt_impossible:
+                update_set.add(x)
+                
+        for x, y in update_set:
+            self.map[x][y] = self.general_game_map[x][y]
+
 
     def __has_seen_announce(self):
         return self.announce != None
@@ -78,9 +109,10 @@ class Seeker(Player):
             self.map[curx][cury] = Config.HIDER
 
     def move(self, turn):
-        # TODO: uncomment the next two lines to test
-        # if self.is_pregame(turn):
-        #     return self.__make_a_move(0, 0)
+        ''' pregame freeze '''
+        if self.is_pregame(turn):
+            return self.__make_a_move(0, 0)
+
         if self.__found_hider():
             x, y = self.detected_coord
             self.path = copy.deepcopy(self.__find_path(x, y))
@@ -88,24 +120,109 @@ class Seeker(Player):
                 self.detected_coord = None
                 return self.__make_a_move(0, 0)
             x, y = self.path.pop(0)
+            print("found hider")
             return self.__make_a_move(x, y)
         
         if not self.__has_seen_announce() and not self.__is_turn_to_move(turn):
+            print("odd cases")
             return (0, 0)
         if not self.__has_seen_announce():
             self.__cross_out_redundant_path()
         if self.__has_checked_all_announce():
-            self.__should_give_up = True
-            return self.__make_a_move(0, 0)
+            # self.__should_give_up = True
+            # return self.__make_a_move(0, 0)
+            print("has checked all announce")
+            return self.push_tactic()
         if len(self.radar_path) == 0:
             self.__explore()
         if len(self.radar_path) == 0:
-            # if self.__has_checked_all_announce():
-            #     print("now i give up")
-            #     self.__should_give_up = True
-            return self.__make_a_move(0, 0)
+            #return self.__make_a_move(0, 0)
+            print("radar path 0")
+            return self.push_tactic()
         x, y = self.radar_path.pop(0)
+        print("normal case")
+        print(self.map)
         return self.__make_a_move(x, y)
+
+    def push_tactic(self):
+        self.radar_path = []
+        print("unreachable: ", end = "")
+        for i in self.unreachable_obstacles:
+            print(i, end = " ")
+        print()
+        obstacle_id, obstacle_nearby = self.check_nearby_obstacle()
+        print("obs id {}".format(obstacle_id))
+        if not obstacle_nearby:
+            print("find nearby")
+            return self.find_arbitrary_obstacle()
+        print("get dir")
+        x, y = self.get_dir_to_obstacle(obstacle_id)
+        if self.is_pushable(obstacle_id, (x, y)):
+            self.unreachable_obstacles = set()
+            self.push_obstacle(obstacle_id, (x, y))
+            return self.__make_a_move(x, y)
+        print("not pushable")
+        self.unreachable_obstacles.add(obstacle_id)
+        self.obs_path = []
+        return self.find_arbitrary_obstacle()
+
+    def check_nearby_obstacle(self):
+        for id in range(len(self.obs)):
+            for x, y in self.obs[id]:
+                if self.is_nearby(x, y):
+                    return id, True
+        return -1, False
+
+    def is_nearby(self, x, y):
+        dx, dy = abs(x - self.cur_x), abs(y - self.cur_y)
+        return dx + dy < 2
+
+    def find_arbitrary_obstacle(self):
+        if len(self.obs_path) == 0:
+            for id in range(len(self.obs)):
+                if id not in self.unreachable_obstacles:
+                    pivot_x, pivot_y = self.obs[id][0]
+                    for dx, dy in Config.DIR:
+                        dest_x, dest_y = pivot_x + dx, pivot_y + dy
+                        tmp_path = self.__find_path(dest_x, dest_y)
+                        if len(tmp_path) != 0:
+                            if len(self.obs_path) == 0 or len(tmp_path) < len(self.obs_path):
+                                self.obs_path = tmp_path
+                            print("dest {} {}".format(dest_x, dest_y))
+        if len(self.obs_path) == 0:
+            print("cannot find nearest obstacle")
+            self.__should_give_up = True
+            return self.__make_a_move(0, 0)
+        print(self.obs_path)
+        x, y = self.obs_path.pop(0)
+        return self.__make_a_move(x, y)
+
+    def is_pushable(self, obstacle_id, push_dir):
+        dx, dy = push_dir
+        for x, y in self.obs[obstacle_id]:
+            nx, ny = dx + x, dy + y
+            if not self.is_in_range(nx, ny) or self.is_blocked_cell(nx, ny):
+                return False
+        return True
+
+    def is_blocked_cell(self, x, y):
+        return self.map[x][y] in [Config.WALL, Config.OBS, Config.SEEKER, Config.HIDER]
+
+    def get_dir_to_obstacle(self, obstacle_id):
+        for x, y in self.obs[obstacle_id]:
+            if self.is_nearby(x, y):
+                return x - self.cur_x, y - self.cur_y
+
+    def push_obstacle(self, obstacle_id, moving_direction):
+        assert self.is_pushable(obstacle_id, moving_direction)
+        self.announce = None
+        dx, dy = moving_direction
+        for cell_id in range(len(self.obs[obstacle_id])):
+            x, y = self.obs[obstacle_id][cell_id]
+            nx, ny = dx + x, dy + y
+            self.map[nx][ny] = Config.OBS
+            self.map[x][y] = Config.VERIFIED
+            self.obs[obstacle_id][cell_id] = (nx, ny)
 
     def __has_checked_all_announce(self):
         if not self.__has_seen_announce():

@@ -62,8 +62,7 @@ class Game:
         return (self.__turn % (self.__num_hiders + 1) - 2) % (self.__num_hiders + 1)
 
     def __compute_seeker_turn(self):
-        res = (self.__turn - 1) // (self.__num_hiders + 1) + 1
-        return res
+        return (self.__turn - 1) // (self.__num_hiders + 1) + 1
 
     def __compute_hider_turn(self, index):
         res = (self.__turn - (index + 2)) // (self.__num_hiders + 1) + 1
@@ -90,6 +89,7 @@ class Game:
         current_hider = self.__hiders[index_hider_move]
         if current_hider != None:
             x, y = current_hider.move(self.__compute_hider_turn(index_hider_move))
+            print(f"hider {index_hider_move}: {self.__hiders[index_hider_move].cur_x} {self.__hiders[index_hider_move].cur_y}")
             self.__seeker.update_hider_pos(current_hider.cur_x, current_hider.cur_y, x, y)
             if not self.overlap_hider(self.__hiders[index_hider_move].cur_x - x, self.__hiders[index_hider_move].cur_y - y, index_hider_move):
                 self.__map[self.__hiders[index_hider_move].cur_x - x][self.__hiders[index_hider_move].cur_y - y] = Config.EMPTY
@@ -114,13 +114,15 @@ class Game:
             if self.__is_time_out():
                 message = "Time out"
                 break
-            if self.__seeker.visited_all():
-                message = "Seeker gives up"
-                break
+            # if self.__seeker.visited_all():
+            #     message = "Seeker gives up"
+            #     break
             if self.__is_seeker_turn():
                 self.make_seeker_move()
+                print(f"seeker {self.__seeker.cur_x} {self.__seeker.cur_y}")
             else:
                 self.make_hider_move(is_debug)
+            self.update_game_map()
             self.update_game_info(is_debug)
         if not is_debug:
             self.__gui.visualize()
@@ -130,6 +132,19 @@ class Game:
             print(message + ", hiders win")
         print("Point: {:d}".format(self.__point))
         print("Turns taken: {}".format(self.__turn))
+
+    def update_game_map(self):
+        for i in range(self.__n):
+            for j in range(self.__m):
+                if self.__map[i][j] == Config.OBS:
+                    self.__map[i][j] = Config.EMPTY
+        for obs in self.__obs:
+            for x, y in obs:
+                self.__map[x][y] = Config.OBS
+        for hider in self.__hiders:
+            if hider != None:
+                self.__map[hider.cur_x][hider.cur_y] = Config.HIDER
+        self.__map[self.__seeker.cur_x][self.__seeker.cur_y] = Config.SEEKER
 
     def obs_push(self, obs_id, direction):
         x, y = direction

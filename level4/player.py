@@ -7,7 +7,7 @@ class Player:
         self.map = copy.deepcopy(map)
         self.cur_x, self.cur_y = init_pos
         self.init_heuristic_map()
-        self.obs = copy.deepcopy(obs)
+        self.obs = obs
 
     def is_in_range(self, x, y):
         return x >= 0 and x < self.n and y >= 0 and y < self.m

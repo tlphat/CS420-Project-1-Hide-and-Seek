@@ -160,22 +160,23 @@ class Hider(Player):
         # TODO: uncomment the next two lines to test
         # if self.is_pregame(turn):
         #     return self.prepare()
-        self.check_for_seeker()
-        if self.is_regconized:
-            self.__run()
-            if turn % 2 != 0:
-                return (0, 0)
-        if self.__cur_dest == (self.cur_x, self.cur_y):
-            if self.__should_stay(turn) == True: 
-                return (0, 0)
-            self.__prev_cur_dest = self.__cur_dest
-            self.__update_destination()
-        x, y = self.__cur_path[self.__cur_step]
-        dx, dy = x - self.cur_x, y - self.cur_y
-        self.cur_x, self.cur_y = x, y
-        self.__update_observable_range()
-        self.__cur_step += 1
-        return (dx, dy)
+        # self.check_for_seeker()
+        # if self.is_regconized:
+        #     self.__run()
+        #     if turn % 2 != 0:
+        #         return (0, 0)
+        # if self.__cur_dest == (self.cur_x, self.cur_y):
+        #     if self.__should_stay(turn) == True: 
+        #         return (0, 0)
+        #     self.__prev_cur_dest = self.__cur_dest
+        #     self.__update_destination()
+        # x, y = self.__cur_path[self.__cur_step]
+        # dx, dy = x - self.cur_x, y - self.cur_y
+        # self.cur_x, self.cur_y = x, y
+        # self.__update_observable_range()
+        # self.__cur_step += 1
+        # return (dx, dy)
+        return (0, 0)
 
     def __update_observable_range(self):
         self.obs_list = []
