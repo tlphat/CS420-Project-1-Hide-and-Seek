@@ -5,8 +5,10 @@ import heapq
 import copy
 import random
 
+
 class Hider(Player):
-    def __init__(self, map, n, m, obs_range, init_pos, seeker_init_pos, obs, obs_sign_to_hider, obs_need, id):
+    def __init__(self, map, n, m, obs_range, init_pos, seeker_init_pos, obs, obs_sign_to_hider, obs_need, hide_place,
+                 hider_status, obs_to_cell, id):
         super().__init__(map, n, m, obs_range, init_pos, obs)
         self.__seeker_init_pos = seeker_init_pos
         self.__cur_dest = init_pos
@@ -18,25 +20,28 @@ class Hider(Player):
         self.seeker_coord = None
         self.__prev_cur_dest = None
         # self.__update_destination()
-        self.obs_list = [] # list of current observable cells
-        self.prepare_path = None # store moving path in pre-game session
+        self.obs_list = []  # list of current observable cells
+        self.prepare_path = None  # store moving path in pre-game session
         self.pregame_should_move = True
         self.finish_prepare = False
-#        self.__navigate()
+        #        self.__navigate()
         self.BFS_map = self.BFS_full_map()
         self.init_heuristic_map()
         self.obs_sign_to_hider = obs_sign_to_hider
         self.obs_need = obs_need
+        self.hide_place = hide_place
+        self.hider_status = hider_status
+        self.obs_to_cell = obs_to_cell
         self.id = id
 
     def update_seeker_pos(self, x, y):
-        self.__seeker_init_pos = x,y
+        self.__seeker_init_pos = x, y
 
     def __navigate(self):
         for i in range(self.n):
             for j in range(self.m):
                 if self.map[i][j] == Config.HIDER:
-                        self.cur_x, self.cur_y = i, j
+                    self.cur_x, self.cur_y = i, j
 
     def __init_seeker_heuristic_map(self):
         self.__BFS_seeker_map = [[-1] * self.m for _ in range(self.n)]
@@ -77,18 +82,21 @@ class Hider(Player):
     def check_for_seeker(self):
         for i in range(self.cur_x - self.obs_range, self.cur_x + self.obs_range + 1):
             for j in range(self.cur_y - self.obs_range, self.cur_y + self.obs_range + 1):
-                if i >= 0 and i < self.n and j >= 0 and j < self.m and self.is_observable(i, j) and self.map[i][j] == Config.SEEKER:
+                if 0 <= i < self.n and 0 <= j < self.m and self.is_observable(i, j) and self.map[i][j] == Config.SEEKER:
                     self.is_regconized, self.seeker_coord = True, (i, j)
                     return
         self.is_regconized, self.seeker_coord = False, None
 
-    def make_a_move(self, dxy, obs_id = None):
+    def make_a_move(self, dxy):
         dx, dy = dxy
         self.cur_x, self.cur_y = self.cur_x + dx, self.cur_y + dy
         self.__cur_dest = (self.cur_x, self.cur_y)
         self.__update_observable_range()
-        for i in range(len(self.obs[obs_id])):
-            self.obs[obs_id][i] = self.obs[obs_id][i][0] + dx, self.obs[obs_id][i][1] + dy
+
+        if self.id in self.obs_sign_to_hider:
+            obs_id = self.obs_sign_to_hider.index(self.id)
+            for i in range(len(self.obs[obs_id])):
+                self.obs[obs_id][i] = self.obs[obs_id][i][0] + dx, self.obs[obs_id][i][1] + dy
         self.update_obs_loc()
         return dxy
 
@@ -143,10 +151,10 @@ class Hider(Player):
                 self.map[x][y] = Config.OBS
 
     def is_obs_blocked_up(self, obs_id):
-        if self.obs[obs_id][0][0] == self.obs[obs_id][1][0]: # horizontal
+        if self.obs[obs_id][0][0] == self.obs[obs_id][1][0]:  # horizontal
             return not self.isAccessable(self.obs[obs_id][0][0] - 1, self.obs[obs_id][0][1]) and \
                    not self.isAccessable(self.obs[obs_id][1][0] - 1, self.obs[obs_id][1][1])
-        else: # vertical
+        else:  # vertical
             return not self.isAccessable(self.obs[obs_id][0][0] - 1, self.obs[obs_id][0][1])
 
     def is_obs_blocked_down(self, obs_id):
@@ -190,13 +198,14 @@ class Hider(Player):
         for obs_id in range(len(self.obs)):
             self.fill_obs_become_wall(obs_id)
 
-    def find_horizontal_obs_to_this_cell_except_this_obs(self, x, y, exc): # return id of nearist horizontal obs and path to cell (x, y)
+    # return id of nearest horizontal obs and path to cell (x, y)
+    def find_horizontal_obs_to_this_cell_except_this_obs(self, x, y, exc):
         best_path = None
         id_best_path = None
         for obs_id in range(len(self.obs)):
             if obs_id == exc:
                 continue
-            if self.obs[obs_id][0][0] == self.obs[obs_id][1][0]: # horizontal obs
+            if self.obs[obs_id][0][0] == self.obs[obs_id][1][0]:  # horizontal obs
                 new_path = self.can_obs_go_to_this_location(obs_id, x, y)
                 if new_path is None:
                     continue
@@ -205,22 +214,23 @@ class Hider(Player):
                     id_best_path = obs_id
         return id_best_path, best_path
 
-    def find_vertical_obs_to_this_cell_except_this_obs(self, x, y, exc): # return id of nearist vertical obs and path to cell (x, y)
+    # return id of nearest vertical obs and path to cell (x, y)
+    def find_vertical_obs_to_this_cell_except_this_obs(self, x, y, exc):
         best_path = None
         id_best_path = None
         for obs_id in range(len(self.obs)):
             if obs_id == exc:
                 continue
-            if self.obs[obs_id][0][1] == self.obs[obs_id][1][1]: # vertical obs
+            if self.obs[obs_id][0][1] == self.obs[obs_id][1][1]:  # vertical obs
                 new_path = self.can_obs_go_to_this_location(obs_id, x, y)
-                if new_path == None:
+                if new_path is None:
                     continue
-                if best_path == None or len(best_path) > len(new_path):
+                if best_path is None or len(best_path) > len(new_path):
                     best_path = new_path
                     id_best_path = obs_id
         return id_best_path, best_path
 
-    def can_obs_go_to_this_location(self, obs_id, u, v): # return None if cannot : path
+    def can_obs_and_hider_go_to_this_location(self, obs_id, cur_x, cur_y, u, v):  # return None if cannot : path
         path = [[(-1, -1)] * self.m for _ in range(self.n)]
         q = Queue()
         visited = [[False] * self.m for _ in range(self.n)]
@@ -230,25 +240,43 @@ class Hider(Player):
             x, y = q.get()
             for dx, dy in Config.DIR:
                 ux, uy = x + dx, y + dy
-                if self.isAccessable(ux, uy) and not visited[ux][uy] and self.isAccessable(ux + self.obs[obs_id][1][0] - self.obs[obs_id][0][0], uy + self.obs[obs_id][1][1] - self.obs[obs_id][0][1]):
+                if self.isAccessable(ux, uy) and not visited[ux][uy] \
+                        and self.isAccessable(ux + self.obs[obs_id][1][0] - self.obs[obs_id][0][0],
+                                              uy + self.obs[obs_id][1][1] - self.obs[obs_id][0][1]) \
+                        and self.isAccessable(cur_x + self.obs[obs_id][1][0] - self.obs[obs_id][0][0],
+                                              cur_y + self.obs[obs_id][1][1] - self.obs[obs_id][0][1]):
                     visited[ux][uy] = True
                     q.put((ux, uy))
                     path[ux][uy] = x, y
                 if (ux, uy) == (u, v):
-                    return True
-        return False
+                    return path
+        return None
 
     def is_bring_obs(self, obs_id):
         for obs in self.obs[obs_id]:
             dx, dy = obs[0] - self.cur_x, obs[1] - self.cur_y
-            if dx*dx + dy*dy == 1:
+            if dx * dx + dy * dy == 1:
                 return True
         return False
 
     def find_way_push_obs_to_this_cell(self, obs_id, u, v):
-        
+        path = None
+        for cell in self.obs[obs_id]:
+            for dx, dy in Config.DIR:
+                if dx * dx + dy * dy == 1 and self.isAccessable(cell[0] + dx, cell[1] + dy):
+                    path1 = self.__BFS((self.cur_x, self.cur_y), (cell[0] + dx, cell[1] + dy))
+                    path2 = self.can_obs_and_hider_go_to_this_location(obs_id, cell[0]+dx, cell[0]+dy, u, v)
 
-    def can_this_cell_be_place_for_hider_to_hide_and_place_obs_around(self, x, y): # None | Total step to finish
+                    path1.append(path2)
+
+                    if path is None or len(path1) < len(self.prepare_path):
+                        path = path1
+        return path
+
+    def is_this_hider_still_alive(self, hider_id):
+        return self.hider_status[hider_id]
+
+    def can_this_cell_be_place_for_hider_to_hide_and_place_obs_around(self, x, y):  # None | cell, list_obs, obs_dest, cost
         if not self.isAccessable(x, y):
             return None
         up = not self.isAccessable(x - 1, y)
@@ -265,33 +293,55 @@ class Hider(Player):
             return None
 
         return list_obs,
-    def generate_path(self):
+
+    def generate_the_way_to_win(self):
         # TODO: self.prepare_path contains list of (dx, dy) towards self.obs[self.obs_id]
         # e.g. self.prepare_path = [(0, 1), (0, 1)]
 
-        cost = None
-        x, y = None, None
+        best_cell, best_list_obs, best_obs_dest, best_cost = None, None, None, None
         for i in range(self.n):
             for j in range(self.m):
                 tmp = self.can_this_cell_be_place_for_hider_to_hide_and_place_obs_around(i, j)
                 if tmp is None:
                     continue
-                if cost is None:
-                    cost = tmp
-                cost = min(cost, tmp)
-                x, y = i, j
+                cell, list_obs, obs_dest, cost = tmp
+                if best_list_obs is None or cost > best_cost:
+                    best_cell = cell
+                    best_list_obs = list_obs
+                    best_obs_dest = obs_dest
+                    best_cost = cost
 
+        self.obs_need = best_list_obs
+        self.obs_to_cell = best_obs_dest
+        self.hide_place = best_cell
+
+        id_hider = -1
+        for id in len(self.obs_need):
+            id_hider = (id_hider + 1) % len(self.hider_status)
+            while not self.is_this_hider_still_alive(id_hider):
+                id_hider = (id_hider + 1) % len(self.hider_status)
+
+            self.obs_sign_to_hider[self.obs_need[id]] = id_hider
+
+    def generate_path(self):
+        if self.id in self.obs_sign_to_hider:
+            self.prepare_path = self.find_way_push_obs_to_this_cell(self.obs_sign_to_hider.index(self.id),
+                                                                    self.obs_to_cell[self.obs_need.index(self.obs_sign_to_hider.index(self.id))][0],
+                                                                    self.obs_to_cell[self.obs_need.index(self.obs_sign_to_hider.index(self.id))][1])
+        else:
+            self.prepare_path = self.__BFS((self.cur_x, self.cur_y), self.hide_place)
 
     def prepare(self):
         if not self.seeker_is_reachable():
             return self.make_a_move((0, 0))
 
-        if self.prepare_path is None:
+        if len(self.obs_need) == 0:
+            self.generate_path_the_way_to_win()
+        if len(self.prepare_path) == 0:
             self.generate_path()
         if len(self.prepare_path) > 0:
             return self.make_a_move(self.prepare_path.pop(0))
         return self.make_a_move((0, 0))
-
 
         # maybe prepare time is over but its still time to lock down hider
         # go towards obstacle
@@ -347,19 +397,20 @@ class Hider(Player):
     def __mahattan_distance(self, src, des):
         x1, y1 = src
         x2, y2 = des
-        return ((x2 - x1)**2 + (y2 - y1)**2)
+        return (x2 - x1) ** 2 + (y2 - y1) ** 2
 
     def __heuristic_value(self, src, i, j):
         k_h = 20
         k_m = 10
         k_s = 1
         res = 0
-        if (self.is_regconized == True):
+        if self.is_regconized:
             k_h = 0
             k_m = 5
             k_s = 15
             res += 50 * self.__mahattan_distance(src, self.seeker_coord)
-        return res + k_h * self.hmap[i][j] - k_m * self.__mahattan_distance(src, (i,j)) + k_s * self.__BFS_seeker_map[i][j]
+        return res + k_h * self.hmap[i][j] - k_m * self.__mahattan_distance(src, (i, j)) + k_s * \
+               self.__BFS_seeker_map[i][j]
 
     def __find_dest(self, src):
 
@@ -367,6 +418,7 @@ class Hider(Player):
             def __init__(self, pos, value):
                 self.pos = pos
                 self.value = value
+
             def __lt__(self, other):
                 return self.value > other.value
 
@@ -374,12 +426,12 @@ class Hider(Player):
         for i in range(self.n):
             for j in range(self.m):
                 if i != self.cur_x and j != self.cur_y and (i, j) != self.__prev_cur_dest and self.isAccessable(i, j):
-                    heapq.heappush(dest, DestEntry((i,j), self.__heuristic_value(src, i,j)))
+                    heapq.heappush(dest, DestEntry((i, j), self.__heuristic_value(src, i, j)))
 
         while len(dest) != 0:
             des = heapq.heappop(dest).pos
             temp_path = self.__find_path(src, des)
-            if temp_path != None:
+            if temp_path is not None:
                 self.__cur_path = temp_path
                 return des
 
@@ -388,7 +440,7 @@ class Hider(Player):
             return False
         if y < 0 or y >= self.m:
             return False
-        if self.map[x][y] in [Config.WALL, Config.OBS]: #TODO: remove HIDER when gui fixed
+        if self.map[x][y] in [Config.WALL, Config.OBS]:  # TODO: remove HIDER when gui fixed
             return False
         return True
 
@@ -413,10 +465,10 @@ class Hider(Player):
     def __find_path(self, src, des):
         temp_path = []
         BFS_path = self.__BFS(src, des)
-        x,y = des
-        if BFS_path != None:
+        x, y = des
+        if BFS_path is not None:
             while BFS_path[x][y] != src:
-                if (BFS_path[x][y] == (-1, -1)):
+                if BFS_path[x][y] == (-1, -1):
                     exit(0)
                 temp_path.append(BFS_path[x][y])
                 x, y = BFS_path[x][y]
@@ -427,14 +479,14 @@ class Hider(Player):
 
     def announce(self):
         x, y = self.__randomize()
-        while (x < 0 or x >= self.n or y < 0 or y >= self.m or self.map[x][y] in [Config.WALL, Config.OBS]):
+        while x < 0 or x >= self.n or y < 0 or y >= self.m or self.map[x][y] in [Config.WALL, Config.OBS]:
             x, y = self.__randomize()
-        return (x, y)
+        return x, y
 
     def __randomize(self):
         x = random.randint(self.cur_x - self.obs_range, self.cur_x + self.obs_range)
         y = random.randint(self.cur_y - self.obs_range, self.cur_y + self.obs_range)
-        return (x, y)
+        return x, y
 
     def meet(self, cur_x, cur_y):
         return (self.cur_x, self.cur_y) == (cur_x, cur_y)

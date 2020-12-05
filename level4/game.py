@@ -14,6 +14,9 @@ class Game:
         self.__obs = []
         self.__obs_sign_to_hider = []
         self.__need_obs = []
+        self.__obs_to_cell = []
+        self.__hide_place = [None, None]
+        self.__hider_status = []
 
     def read_input(self, map_name, is_debug):
         fin = open("../map/" + map_name + ".txt", "r")
@@ -39,9 +42,11 @@ class Game:
     def __init_players(self):
         seeker_coord, hiders_coords = self.__get_agent_coord()
         self.__obs_sign_to_hider = [None] * len(hiders_coords)
+        self.__hider_status = [True] * len(hiders_coords)
         self.__hiders = ([Hider(self.__map, self.__n, self.__m, self.__range_hide,
                                 (hiders_coords[id_hider][0], hiders_coords[id_hider][1]), seeker_coord, self.__obs,
-                                self.__obs_sign_to_hider, self.__need_obs, id_hider)
+                                self.__obs_sign_to_hider, self.__need_obs, self.__hide_place, self.__hider_status,
+                                self.__obs_to_cell, id_hider)
                           for id_hider in range(len(hiders_coords))])
         self.__seeker = Seeker(self.__map, self.__n, self.__m, self.__range_seek, seeker_coord, self.__obs)
         self.__seeker.update_num_hiders(self.__num_hiders)
@@ -193,6 +198,7 @@ class Game:
                         self.__seeker.map[x][y] = Config.VERIFIED
                     self.__hiders[i] = None
                     self.__obs_sign_to_hider[i] = None
+                    self.__hider_status[i] = False
                     found_somehider = True
         if found_somehider:
             self.reset_seeker_info()
