@@ -156,6 +156,16 @@ class Hider(Player):
             return self.make_a_move(self.prepare_path.pop(0))
         return self.make_a_move((0, 0))
 
+    def update_obs_loc(self, obs_list):
+        self.obs = obs_list
+        for i in range(self.n):
+            for j in range(self.m):
+                if self.map[i][j] == Config.OBS:
+                    self.map[i][j] = Config.EMPTY
+        for obstacle in self.obs:
+            for x, y in obstacle:
+                self.map[x][y] = Config.OBS
+
     def move(self, turn):
         # TODO: uncomment the next two lines to test
         # if self.is_pregame(turn):
