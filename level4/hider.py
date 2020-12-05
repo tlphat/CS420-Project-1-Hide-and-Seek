@@ -164,10 +164,8 @@ class Hider(Player):
                 return False
             j += 1
         return True
-        
 
     def make_all_obs_become_wall_if_can(self):
-
 
     def find_horizontal_obs_to_this_cell(self, x, y): # return id of nearist horizontal obs and path to cell (x, y)
         best_path = None
@@ -232,8 +230,6 @@ class Hider(Player):
         if not Check:
             return None
 
-        
-
     def prepare(self):
         if not self.seeker_is_reachable():
             return self.make_a_move((0, 0))
@@ -258,8 +254,6 @@ class Hider(Player):
         # if len(self.prepare_path) != 0:
         #     return self.make_a_move(self.prepare_path.pop(0))
         # return self.make_a_move((0, 0))
-
-
 
     def move(self, turn):
         # TODO: uncomment the next two lines to test
