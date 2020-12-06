@@ -43,6 +43,8 @@ class Game:
         seeker_coord, hiders_coords = self.__get_agent_coord()
         # self.__hiders = ([Hider(self.__map, self.__n, self.__m, self.__range_hide, hider_coord, seeker_coord, self.__obs) 
         #     for hider_coord in hiders_coords])
+        self.__obs_sign_to_hider = [None] * len(hiders_coords)
+        self.__hider_status = [True] * len(hiders_coords)
         self.__hiders = ([Hider(self.__map, self.__n, self.__m, self.__range_hide,
                                 (hiders_coords[id_hider][0], hiders_coords[id_hider][1]), seeker_coord, self.__obs,
                                 self.__obs_sign_to_hider, self.__need_obs, self.__hide_place, self.__hider_status,
@@ -86,7 +88,7 @@ class Game:
         return True
 
     def make_seeker_move(self):
-        x, y = self.__seeker.move(self.__compute_seeker_turn())
+        x, y = self.__seeker.move(self.__compute_seeker_turn(), self.__hiders)
         self.__point -= int(x != 0 or y != 0)
         self.__map[self.__seeker.cur_x - x][self.__seeker.cur_y - y] = Config.EMPTY
         self.__map[self.__seeker.cur_x][self.__seeker.cur_y] = Config.SEEKER
@@ -118,7 +120,7 @@ class Game:
         self.__turn, self.__point = (1, 0)
         self.__winner = Config.HIDER
         message = ""
-        while True:
+        for _ in range(100):
             if self.__hiders_found() and (self.__turn - 1) % (self.__num_hiders + 1) == 1:
                 self.__winner = Config.SEEKER
                 break

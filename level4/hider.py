@@ -20,7 +20,7 @@ class Hider(Player):
         self.__prev_cur_dest = None
         # self.__update_destination()
         self.obs_list = [] # list of current observable cells
-        self.prepare_path = [] # store moving path in pre-game session
+        self.prepare_path = None # store moving path in pre-game session
         self.pregame_should_move = True
         self.finish_prepare = False
 #        self.__navigate()
@@ -228,7 +228,7 @@ class Hider(Player):
 
         # if not self.isAccessable(ux, uy):
         #     self.generate_path()
-
+        print("hererereer {} {}".format(ux, uy))
         return self.make_a_move((ux, uy))
 
     def is_obs_blocked_up(self, obs_id):
@@ -441,7 +441,24 @@ class Hider(Player):
         # self.__update_observable_range()
         # self.__cur_step += 1
         # return (dx, dy)
-        return (0, 0)
+        if self.is_pregame(turn):
+            return self.prepare()
+        self.check_for_seeker()
+        if self.is_regconized:
+            self.__run()
+            if turn % 2 != 0:
+                return 0, 0
+        if self.__cur_dest == (self.cur_x, self.cur_y):
+            if self.__should_stay(turn):
+                return 0, 0
+            self.__prev_cur_dest = self.__cur_dest
+            self.__update_destination()
+        x, y = self.__cur_path[self.__cur_step]
+        dx, dy = x - self.cur_x, y - self.cur_y
+        self.cur_x, self.cur_y = x, y
+        self.__update_observable_range()
+        self.__cur_step += 1
+        return dx, dy
 
     def __update_observable_range(self):
         self.obs_list = []

@@ -108,9 +108,22 @@ class Seeker(Player):
             self.map[curx - dx][cury - dy] = Config.EMPTY
             self.map[curx][cury] = Config.HIDER
 
-    def move(self, turn):
+    def update_obs_locations(self, hiders):
+        for i in range(self.n):
+            for j in range(self.m):
+                if self.map[i][j] == Config.OBS:
+                    self.map[i][j] = Config.EMPTY
+        for obstacle in self.obs:
+            for x, y in obstacle:
+                self.map[x][y] = Config.OBS
+        for hider in hiders:
+            if hider != None:
+                self.map[hider.cur_x][hider.cur_y] = Config.HIDER
+
+    def move(self, turn, hiders):
         ''' pregame freeze '''
         if self.is_pregame(turn):
+            self.update_obs_locations(hiders)
             return self.__make_a_move(0, 0)
 
         if self.__found_hider():
