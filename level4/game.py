@@ -89,6 +89,8 @@ class Game:
 
     def make_seeker_move(self):
         x, y = self.__seeker.move(self.__compute_seeker_turn(), self.__hiders)
+        if (self.__seeker.cur_x, self.__seeker.cur_y) == (5, 3):
+            print("YAFSDFADFAF")
         self.__point -= int(x != 0 or y != 0)
         self.__map[self.__seeker.cur_x - x][self.__seeker.cur_y - y] = Config.EMPTY
         self.__map[self.__seeker.cur_x][self.__seeker.cur_y] = Config.SEEKER

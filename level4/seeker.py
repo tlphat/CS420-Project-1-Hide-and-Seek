@@ -121,9 +121,9 @@ class Seeker(Player):
                 self.map[hider.cur_x][hider.cur_y] = Config.HIDER
 
     def move(self, turn, hiders):
+        self.update_obs_locations(hiders)
         ''' pregame freeze '''
         if self.is_pregame(turn):
-            self.update_obs_locations(hiders)
             return self.__make_a_move(0, 0)
 
         if self.__found_hider():
@@ -132,8 +132,11 @@ class Seeker(Player):
             if len(self.path) == 0:
                 self.detected_coord = None
                 return self.__make_a_move(0, 0)
+            print("found hider {} {} {}".format(x, y, self.map[5][3]))
+            if (self.cur_x, self.cur_y) == (4, 3):
+                print(self.obs)
+                print(self.map)
             x, y = self.path.pop(0)
-            print("found hider")
             return self.__make_a_move(x, y)
         
         if not self.__has_seen_announce() and not self.__is_turn_to_move(turn):
