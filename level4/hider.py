@@ -106,7 +106,7 @@ class Hider(Player):
             print("after bring", self.obs[obs_id])
 
         self.update_obs_loc()
-        return dxy
+        return (dir_x, dir_y)
 
     def BFS_full_map(self):
         res = [[-1] * self.m for _ in range(self.n)]

@@ -137,6 +137,7 @@ class Game:
                 self.make_seeker_move()
             else:
                 self.make_hider_move(is_debug)
+            self.update_game_map()
             self.update_game_info(is_debug)
         if not is_debug:
             self.__gui.visualize()
@@ -146,6 +147,19 @@ class Game:
             print(message + ", hiders win")
         print("Point: {:d}".format(self.__point))
         print("Turns taken: {}".format(self.__turn))
+
+    def update_game_map(self):
+        for i in range(self.__n):
+            for j in range(self.__m):
+                if self.__map[i][j] == Config.OBS:
+                    self.__map[i][j] = Config.EMPTY
+        for obs in self.__obs:
+            for x, y in obs:
+                self.__map[x][y] = Config.OBS
+        for hider in self.__hiders:
+            if hider != None:
+                self.__map[hider.cur_x][hider.cur_y] = Config.HIDER
+        self.__map[self.__seeker.cur_x][self.__seeker.cur_y] = Config.SEEKER
 
     def obs_push(self, obs_id, direction):
         x, y = direction
