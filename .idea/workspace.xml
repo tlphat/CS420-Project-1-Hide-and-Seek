@@ -3,25 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="844e78c2-bb5f-4f37-a75f-be69cdbe4762" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/level4/seeker.py" beforeDir="false" afterPath="$PROJECT_DIR$/level4/seeker.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/map/1.4.txt" beforeDir="false" afterPath="$PROJECT_DIR$/map/1.4.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/map/1.5.txt" beforeDir="false" afterPath="$PROJECT_DIR$/map/1.5.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/map/2.5.txt" beforeDir="false" afterPath="$PROJECT_DIR$/map/2.5.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/map/4.1.txt" beforeDir="false" afterPath="$PROJECT_DIR$/map/4.1.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/map/4.1.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/map/4.1.xlsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/map/4.2.txt" beforeDir="false" afterPath="$PROJECT_DIR$/map/4.2.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/map/4.2.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/map/4.2.xlsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/map/4.3.txt" beforeDir="false" afterPath="$PROJECT_DIR$/map/4.3.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/map/4.3.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/map/4.3.xlsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/map/4.4.txt" beforeDir="false" afterPath="$PROJECT_DIR$/map/4.4.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/map/4.4.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/map/4.4.xlsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/map/4.5.txt" beforeDir="false" afterPath="$PROJECT_DIR$/map/4.5.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/map/4.5.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/map/4.5.xlsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/map/4.6.txt" beforeDir="false" afterPath="$PROJECT_DIR$/map/4.6.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/map/4.6.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/map/4.6.xlsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/map/4.7.txt" beforeDir="false" afterPath="$PROJECT_DIR$/map/4.7.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/map/4.7.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/map/4.7.xlsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/map/quick_test.txt" beforeDir="false" afterPath="$PROJECT_DIR$/map/quick_test.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/level4/game.py" beforeDir="false" afterPath="$PROJECT_DIR$/level4/game.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/level4/hider.py" beforeDir="false" afterPath="$PROJECT_DIR$/level4/hider.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -63,5 +46,6 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
 </project>

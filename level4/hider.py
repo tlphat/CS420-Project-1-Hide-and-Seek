@@ -206,6 +206,39 @@ class Hider(Player):
         for obs_id in range(len(self.obs)):
             self.fill_obs_become_wall(obs_id)
 
+    def can_obs_go_to_this_location(self, obs_id, u, v):  # return None if cannot : path
+        path = [[(-1, -1)] * self.m for _ in range(self.n)]
+        q = Queue()
+        visited = [[False] * self.m for _ in range(self.n)]
+        visited[self.obs[obs_id][0][0]][self.obs[obs_id][0][1]] = True
+        q.put((self.obs[obs_id][0][0], self.obs[obs_id][0][1]))
+        while not q.empty():
+            x, y = q.get()
+            for dx, dy in Config.DIR:
+                ux, uy = x + dx, y + dy
+                if self.isAccessable(ux, uy) and not visited[ux][uy] \
+                        and self.isAccessable(ux + self.obs[obs_id][1][0] - self.obs[obs_id][0][0],
+                                              uy + self.obs[obs_id][1][1] - self.obs[obs_id][0][1]):
+                    visited[ux][uy] = True
+                    q.put((ux, uy))
+                    path[ux][uy] = x, y
+
+                    if (ux, uy) == (u, v):
+
+                        # print("hello")
+                        temp_path = []
+                        x, y = ux, uy
+                        while path[x][y] != (self.obs[obs_id][0][0], self.obs[obs_id][0][1]):
+                            if path[x][y] == (-1, -1):
+                                print("wao")
+                                exit(0)
+                            temp_path.append(path[x][y])
+                            x, y = path[x][y]
+                        temp_path.reverse()
+                        temp_path.append((ux, uy))
+                        return temp_path
+        return None
+
     # return id of nearest horizontal obs and path to cell (x, y)
     def find_horizontal_obs_to_this_cell_except_this_obs(self, x, y, exc):
         best_path = None
@@ -307,23 +340,70 @@ class Hider(Player):
         return self.hider_status[hider_id]
 
     def can_this_cell_be_place_for_hider_to_hide_and_place_obs_around(self, x, y):  # None | cell, list_obs, obs_dest, cost
-        if x == 4 and y == 11:
-            return (4, 11), [1, 0], [[3, 10], [3, 9]], 10
-        return None
-        if not self.isAccessable(x, y):
-            return None
-        up = not self.isAccessable(x - 1, y)
-        down = not self.isAccessable(x + 1, y)
-        left = not self.isAccessable(x, y - 1)
-        right = not self.isAccessable(x, y + 1)
+        # if x == 4 and y == 11:
+        #     return (4, 11), [1, 0], [[3, 10], [3, 9]], 10
+        # return None
 
-        up_left = not self.isAccessable(x - 1, y - 1)
-        up_right = not self.isAccessable(x - 1, y + 1)
-        down_left = not self.isAccessable(x + 1, y - 1)
-        down_right = not self.isAccessable(x + 1, y + 1)
+        id_ver, path_ver = None, None
+        id_hor, path_hor = None, None
+        des_ver, des_hor = None, None
 
-        if up and down and left and right and up_left and up_right and down_right and down_left:
+        if not self.isAccessable(x - 1, y - 1) and not self.isAccessable(x - 1, y) and not self.isAccessable(x, y - 1) \
+                and not self.isAccessable(x - 1, y + 1) and not self.isAccessable(x + 1, y - 1):
+            if not self.isAccessable(x + 2, y - 1):
+                id_ver, path_ver = self.find_vertical_obs_to_this_cell_except_this_obs(x, y + 1, None)
+                id_hor, path_hor = self.find_horizontal_obs_to_this_cell_except_this_obs(x + 2, y, None)
+                des_ver = [x, y + 1]
+                des_hor = [x + 2, y]
+            elif not self.isAccessable(x - 1, y + 2):
+                id_ver, path_ver = self.find_vertical_obs_to_this_cell_except_this_obs(x, y + 2, None)
+                id_hor, path_hor = self.find_horizontal_obs_to_this_cell_except_this_obs(x + 1, y, None)
+                des_ver = [x, y + 2]
+                des_hor = [x + 1, y]
+
+        if not self.isAccessable(x - 1, y + 1) and not self.isAccessable(x - 1, y) and not self.isAccessable(x, y - 1) \
+                and not self.isAccessable(x + 1, y + 1) and not self.isAccessable(x - 1, y - 1):
+            if not self.isAccessable(x - 1, y - 2):
+                id_ver, path_ver = self.find_vertical_obs_to_this_cell_except_this_obs(x, y - 2, None)
+                id_hor, path_hor = self.find_horizontal_obs_to_this_cell_except_this_obs(x + 1, y - 1, None)
+                des_ver = [x, y - 2]
+                des_hor = [x + 1, t - 1]
+            elif not self.isAccessable(x - 1, y + 2):
+                id_ver, path_ver = self.find_vertical_obs_to_this_cell_except_this_obs(x, y - 1, None)
+                id_hor, path_hor = self.find_horizontal_obs_to_this_cell_except_this_obs(x + 2, y - 1, None)
+                des_ver = [x, y - 1]
+                des_hor = [x + 2, y - 1]
+
+        if not self.isAccessable(x + 1, y + 1) and not self.isAccessable(x, y + 1) and not self.isAccessable(x + 1, y) \
+                and not self.isAccessable(x - 1, y + 1) and not self.isAccessable(x + 1, y - 1):
+            if not self.isAccessable(x - 2, y + 1):
+                id_ver, path_ver = self.find_vertical_obs_to_this_cell_except_this_obs(x - 1, y - 1, None)
+                id_hor, path_hor = self.find_horizontal_obs_to_this_cell_except_this_obs(x - 2, y - 1, None)
+                des_ver = [x - 1, y - 1]
+                des_hor = [x - 2, y - 1]
+            elif not self.isAccessable(x + 1, y - 2):
+                id_ver, path_ver = self.find_vertical_obs_to_this_cell_except_this_obs(x - 1, y - 2, None)
+                id_hor, path_hor = self.find_horizontal_obs_to_this_cell_except_this_obs(x - 1, y - 1, None)
+                des_ver = [x - 1, y - 2]
+                des_hor = [x - 2, y - 1]
+
+        if not self.isAccessable(x + 1, y - 1) and not self.isAccessable(x, y - 1) and not self.isAccessable(x + 1, y) \
+                and not self.isAccessable(x + 1, y + 1) and not self.isAccessable(x - 1, y - 1):
+            if not self.isAccessable(x - 2, y - 1):
+                id_ver, path_ver = self.find_vertical_obs_to_this_cell_except_this_obs(x - 1, y + 1, None)
+                id_hor, path_hor = self.find_horizontal_obs_to_this_cell_except_this_obs(x - 2, y, None)
+                des_ver = [x - 1, y + 1]
+                des_hor = [x - 2, y]
+            elif not self.isAccessable(x + 1, y + 2):
+                id_ver, path_ver = self.find_vertical_obs_to_this_cell_except_this_obs(x - 1, y + 2, None)
+                id_hor, path_hor = self.find_horizontal_obs_to_this_cell_except_this_obs(x - 1, y, None)
+                des_ver = [x - 1, y + 1]
+                des_hor = [x - 1, y]
+
+        if id_ver is None or id_hor is None:
             return None
+
+        return (x, y), [id_ver, id_hor], [des_ver, des_hor], len(path_ver) + len(path_hor)
 
     def generate_the_way_to_win(self):
         # TODO: self.prepare_path contains list of (dx, dy) towards self.obs[self.obs_id]
@@ -517,6 +597,7 @@ class Hider(Player):
         if BFS_path is not None:
             while BFS_path[x][y] != src:
                 if BFS_path[x][y] == (-1, -1):
+                    print("wao")
                     exit(0)
                 temp_path.append(BFS_path[x][y])
                 x, y = BFS_path[x][y]
