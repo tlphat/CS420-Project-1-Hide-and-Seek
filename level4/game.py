@@ -121,7 +121,9 @@ class Game:
         self.__turn, self.__point = (1, 0)
         self.__winner = Config.HIDER
         message = ""
-        while True:
+        daylabien = 0
+        while daylabien < 50:
+            daylabien += 1
             if self.__hiders_found() and (self.__turn - 1) % (self.__num_hiders + 1) == 1:
                 self.__winner = Config.SEEKER
                 break

@@ -104,7 +104,7 @@ class Hider(Player):
             for i in range(len(self.obs[obs_id])):
                 self.obs[obs_id][i] = self.obs[obs_id][i][0] + dir_x, self.obs[obs_id][i][1] + dir_y
             print("after bring", self.obs[obs_id])
-            exit(0)
+
         self.update_obs_loc()
         return dxy
 
@@ -307,7 +307,7 @@ class Hider(Player):
 
     def can_this_cell_be_place_for_hider_to_hide_and_place_obs_around(self, x, y):  # None | cell, list_obs, obs_dest, cost
         if x == 4 and y == 11:
-            return [4, 11], [1, 0], [[3, 10], [3, 9]], 10
+            return (4, 11), [1, 0], [[3, 10], [3, 9]], 10
         return None
         if not self.isAccessable(x, y):
             return None
@@ -360,8 +360,7 @@ class Hider(Player):
                 exit(0)
             # print("finish first if")
         else:
-            self.prepare_path = self.__BFS((self.cur_x, self.cur_y), self.hide_place)
-
+            self.prepare_path = self.__find_path((self.cur_x, self.cur_y), (self.hide_place[0], self.hide_place[1]))
     def prepare(self):
         if not self.seeker_is_reachable():
             return self.make_a_move((0, 0))
@@ -376,7 +375,6 @@ class Hider(Player):
             self.generate_path()
             # print("end generate path")
         if self.prepare_path is not None and len(self.prepare_path) > 0:
-            print(self.prepare_path)
             return self.make_a_move(self.prepare_path.pop(0))
         return self.make_a_move((self.cur_x, self.cur_y))
 
