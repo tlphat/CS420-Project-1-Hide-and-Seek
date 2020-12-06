@@ -92,15 +92,19 @@ class Hider(Player):
         dx, dy = dxy
         print("from (", self.cur_x, self.cur_y, ") to (", dx, dy, ")")
 
+        dir_x, dir_y = dx - self.cur_x, dy - self.cur_y
+
         self.cur_x, self.cur_y = dx, dy
         self.__cur_dest = (self.cur_x, self.cur_y)
         self.__update_observable_range()
 
-        if self.id in self.obs_sign_to_hider and self.is_bring_obs(self.obs_sign_to_hider[0]):
-            print("bring ", self.obs[self.obs_sign_to_hider[0]])
-            obs_id = 0
+        if self.id in self.obs_sign_to_hider and self.is_bring_obs(self.obs_need[0]):
+            print("bring ", self.obs[self.obs_need[0]])
+            obs_id = self.obs_need[0]
             for i in range(len(self.obs[obs_id])):
-                self.obs[obs_id][i] = self.obs[obs_id][i][0] + dx, self.obs[obs_id][i][1] + dy
+                self.obs[obs_id][i] = self.obs[obs_id][i][0] + dir_x, self.obs[obs_id][i][1] + dir_y
+            print("after bring", self.obs[obs_id])
+            exit(0)
         self.update_obs_loc()
         return dxy
 
@@ -351,6 +355,9 @@ class Hider(Player):
             # print("go to first if")
             self.prepare_path = self.find_way_push_obs_to_this_cell(self.obs_need[0], self.obs_to_cell[0][0],
                                                                     self.obs_to_cell[0][1])
+            if (self.obs[self.obs_need[0]][0], self.obs[self.obs_need[0]][1]) == (self.obs_to_cell[0][0], self.obs_to_cell[0][1]):
+                print("raise your fucking hand on")
+                exit(0)
             # print("finish first if")
         else:
             self.prepare_path = self.__BFS((self.cur_x, self.cur_y), self.hide_place)
