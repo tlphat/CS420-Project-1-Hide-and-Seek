@@ -33,6 +33,7 @@ class Hider(Player):
         self.obs_to_cell = obs_to_cell
         self.is_generate_path = is_generate_path
         self.id = id
+        self.__cur_path = []
 
     def update_seeker_pos(self, x, y):
         self.__seeker_init_pos = x,y
@@ -163,6 +164,8 @@ class Hider(Player):
                 self.prepare_path = self.find_way_push_obs_to_this_cell(self.obs_need[0], self.obs_to_cell[0][0],
                                                                         self.obs_to_cell[0][1])
                 return
+
+        self.prepare_path = self.__find_path((self.cur_x, self.cur_y), (self.hide_place[0], self.hide_place[1]))
 
     def push_toward_seeker(self):
         # TODO: push the nearby obstacle towards the seeker
@@ -346,6 +349,39 @@ class Hider(Player):
                         return temp_path
         return None
 
+    def can_obs_go_to_this_location(self, obs_id, u, v):  # return None if cannot : path
+        path = [[(-1, -1)] * self.m for _ in range(self.n)]
+        q = Queue()
+        visited = [[False] * self.m for _ in range(self.n)]
+        visited[self.obs[obs_id][0][0]][self.obs[obs_id][0][1]] = True
+        q.put((self.obs[obs_id][0][0], self.obs[obs_id][0][1]))
+        while not q.empty():
+            x, y = q.get()
+            for dx, dy in Config.DIR:
+                ux, uy = x + dx, y + dy
+                if self.isAccessable(ux, uy) and not visited[ux][uy] \
+                        and self.isAccessable(ux + self.obs[obs_id][1][0] - self.obs[obs_id][0][0],
+                                              uy + self.obs[obs_id][1][1] - self.obs[obs_id][0][1]):
+                    visited[ux][uy] = True
+                    q.put((ux, uy))
+                    path[ux][uy] = x, y
+
+                    if (ux, uy) == (u, v):
+
+                        # print("hello")
+                        temp_path = []
+                        x, y = ux, uy
+                        while path[x][y] != (self.obs[obs_id][0][0], self.obs[obs_id][0][1]):
+                            if path[x][y] == (-1, -1):
+                                print("wao")
+                                exit(0)
+                            temp_path.append(path[x][y])
+                            x, y = path[x][y]
+                        temp_path.reverse()
+                        temp_path.append((ux, uy))
+                        return temp_path
+        return None
+
     def is_bring_obs(self, obs_id):
         for obs in self.obs[obs_id]:
             dx, dy = obs[0] - self.cur_x, obs[1] - self.cur_y
@@ -380,23 +416,70 @@ class Hider(Player):
         return self.hider_status[hider_id]
 
     def can_this_cell_be_place_for_hider_to_hide_and_place_obs_around(self, x, y):  # None | cell, list_obs, obs_dest, cost
-        if x == 4 and y == 11:
-            return (4, 11), [1, 0], [[3, 10], [3, 9]], 10
-        return None
-        if not self.isAccessable(x, y):
-            return None
-        up = not self.isAccessable(x - 1, y)
-        down = not self.isAccessable(x + 1, y)
-        left = not self.isAccessable(x, y - 1)
-        right = not self.isAccessable(x, y + 1)
+        # if x == 4 and y == 11:
+        #     return (4, 11), [1, 0], [[3, 10], [3, 9]], 10
+        # return None
 
-        up_left = not self.isAccessable(x - 1, y - 1)
-        up_right = not self.isAccessable(x - 1, y + 1)
-        down_left = not self.isAccessable(x + 1, y - 1)
-        down_right = not self.isAccessable(x + 1, y + 1)
+        id_ver, path_ver = None, None
+        id_hor, path_hor = None, None
+        des_ver, des_hor = None, None
 
-        if up and down and left and right and up_left and up_right and down_right and down_left:
+        if not self.isAccessable(x - 1, y - 1) and not self.isAccessable(x - 1, y) and not self.isAccessable(x, y - 1) \
+                and not self.isAccessable(x - 1, y + 1) and not self.isAccessable(x + 1, y - 1):
+            if not self.isAccessable(x + 2, y - 1):
+                id_ver, path_ver = self.find_vertical_obs_to_this_cell_except_this_obs(x, y + 1, None)
+                id_hor, path_hor = self.find_horizontal_obs_to_this_cell_except_this_obs(x + 2, y, None)
+                des_ver = [x, y + 1]
+                des_hor = [x + 2, y]
+            elif not self.isAccessable(x - 1, y + 2):
+                id_ver, path_ver = self.find_vertical_obs_to_this_cell_except_this_obs(x, y + 2, None)
+                id_hor, path_hor = self.find_horizontal_obs_to_this_cell_except_this_obs(x + 1, y, None)
+                des_ver = [x, y + 2]
+                des_hor = [x + 1, y]
+
+        if not self.isAccessable(x - 1, y + 1) and not self.isAccessable(x - 1, y) and not self.isAccessable(x, y - 1) \
+                and not self.isAccessable(x + 1, y + 1) and not self.isAccessable(x - 1, y - 1):
+            if not self.isAccessable(x - 1, y - 2):
+                id_ver, path_ver = self.find_vertical_obs_to_this_cell_except_this_obs(x, y - 2, None)
+                id_hor, path_hor = self.find_horizontal_obs_to_this_cell_except_this_obs(x + 1, y - 1, None)
+                des_ver = [x, y - 2]
+                des_hor = [x + 1, t - 1]
+            elif not self.isAccessable(x - 1, y + 2):
+                id_ver, path_ver = self.find_vertical_obs_to_this_cell_except_this_obs(x, y - 1, None)
+                id_hor, path_hor = self.find_horizontal_obs_to_this_cell_except_this_obs(x + 2, y - 1, None)
+                des_ver = [x, y - 1]
+                des_hor = [x + 2, y - 1]
+
+        if not self.isAccessable(x + 1, y + 1) and not self.isAccessable(x, y + 1) and not self.isAccessable(x + 1, y) \
+                and not self.isAccessable(x - 1, y + 1) and not self.isAccessable(x + 1, y - 1):
+            if not self.isAccessable(x - 2, y + 1):
+                id_ver, path_ver = self.find_vertical_obs_to_this_cell_except_this_obs(x - 1, y - 1, None)
+                id_hor, path_hor = self.find_horizontal_obs_to_this_cell_except_this_obs(x - 2, y - 1, None)
+                des_ver = [x - 1, y - 1]
+                des_hor = [x - 2, y - 1]
+            elif not self.isAccessable(x + 1, y - 2):
+                id_ver, path_ver = self.find_vertical_obs_to_this_cell_except_this_obs(x - 1, y - 2, None)
+                id_hor, path_hor = self.find_horizontal_obs_to_this_cell_except_this_obs(x - 1, y - 1, None)
+                des_ver = [x - 1, y - 2]
+                des_hor = [x - 2, y - 1]
+
+        if not self.isAccessable(x + 1, y - 1) and not self.isAccessable(x, y - 1) and not self.isAccessable(x + 1, y) \
+                and not self.isAccessable(x + 1, y + 1) and not self.isAccessable(x - 1, y - 1):
+            if not self.isAccessable(x - 2, y - 1):
+                id_ver, path_ver = self.find_vertical_obs_to_this_cell_except_this_obs(x - 1, y + 1, None)
+                id_hor, path_hor = self.find_horizontal_obs_to_this_cell_except_this_obs(x - 2, y, None)
+                des_ver = [x - 1, y + 1]
+                des_hor = [x - 2, y]
+            elif not self.isAccessable(x + 1, y + 2):
+                id_ver, path_ver = self.find_vertical_obs_to_this_cell_except_this_obs(x - 1, y + 2, None)
+                id_hor, path_hor = self.find_horizontal_obs_to_this_cell_except_this_obs(x - 1, y, None)
+                des_ver = [x - 1, y + 1]
+                des_hor = [x - 1, y]
+
+        if id_ver is None or id_hor is None:
             return None
+
+        return (x, y), [id_ver, id_hor], [des_ver, des_hor], len(path_ver) + len(path_hor)
 
     def generate_the_way_to_win(self):
         # TODO: self.prepare_path contains list of (dx, dy) towards self.obs[self.obs_id]
@@ -423,16 +506,36 @@ class Hider(Player):
 
     def move(self, turn):
         # TODO: uncomment the next two lines to test
+        if self.is_pregame(turn):
+            return self.prepare()
+        self.check_for_seeker()
+        if self.is_regconized:
+            self.__run()
+            if turn % 2 != 0:
+                return (0, 0)
+        if self.__cur_dest == (self.cur_x, self.cur_y):
+            if self.__should_stay(turn) == True: 
+                return (0, 0)
+            self.__prev_cur_dest = self.__cur_dest
+            self.__update_destination()
+        if len(self.__cur_path) == 0:
+            return (0, 0)
+        x, y = self.__cur_path[self.__cur_step]
+        dx, dy = x - self.cur_x, y - self.cur_y
+        self.cur_x, self.cur_y = x, y
+        self.__update_observable_range()
+        self.__cur_step += 1
+        return (dx, dy)
         # if self.is_pregame(turn):
         #     return self.prepare()
         # self.check_for_seeker()
         # if self.is_regconized:
         #     self.__run()
         #     if turn % 2 != 0:
-        #         return (0, 0)
+        #         return 0, 0
         # if self.__cur_dest == (self.cur_x, self.cur_y):
-        #     if self.__should_stay(turn) == True: 
-        #         return (0, 0)
+        #     if self.__should_stay(turn):
+        #         return 0, 0
         #     self.__prev_cur_dest = self.__cur_dest
         #     self.__update_destination()
         # x, y = self.__cur_path[self.__cur_step]
@@ -440,25 +543,7 @@ class Hider(Player):
         # self.cur_x, self.cur_y = x, y
         # self.__update_observable_range()
         # self.__cur_step += 1
-        # return (dx, dy)
-        if self.is_pregame(turn):
-            return self.prepare()
-        self.check_for_seeker()
-        if self.is_regconized:
-            self.__run()
-            if turn % 2 != 0:
-                return 0, 0
-        if self.__cur_dest == (self.cur_x, self.cur_y):
-            if self.__should_stay(turn):
-                return 0, 0
-            self.__prev_cur_dest = self.__cur_dest
-            self.__update_destination()
-        x, y = self.__cur_path[self.__cur_step]
-        dx, dy = x - self.cur_x, y - self.cur_y
-        self.cur_x, self.cur_y = x, y
-        self.__update_observable_range()
-        self.__cur_step += 1
-        return dx, dy
+        # return dx, dy
 
     def __update_observable_range(self):
         self.obs_list = []
@@ -504,6 +589,7 @@ class Hider(Player):
         while len(dest) != 0:
             des = heapq.heappop(dest).pos
             temp_path = self.__find_path(src, des)
+            print("{} {} {}".format(src, des, temp_path))
             if temp_path != None:
                 self.__cur_path = temp_path
                 return des
