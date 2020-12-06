@@ -89,8 +89,8 @@ class Game:
 
     def make_seeker_move(self):
         x, y = self.__seeker.move(self.__compute_seeker_turn(), self.__hiders)
-        if (self.__seeker.cur_x, self.__seeker.cur_y) == (5, 3):
-            print("YAFSDFADFAF")
+        # if (self.__seeker.cur_x, self.__seeker.cur_y) == (5, 3):
+        #     print("YAFSDFADFAF")
         self.__point -= int(x != 0 or y != 0)
         self.__map[self.__seeker.cur_x - x][self.__seeker.cur_y - y] = Config.EMPTY
         self.__map[self.__seeker.cur_x][self.__seeker.cur_y] = Config.SEEKER
@@ -104,7 +104,7 @@ class Game:
         current_hider = self.__hiders[index_hider_move]
         if current_hider != None:
             x, y = current_hider.move(self.__compute_hider_turn(index_hider_move))
-            print(f"hider {index_hider_move}: {self.__hiders[index_hider_move].cur_x} {self.__hiders[index_hider_move].cur_y}")
+            # print(f/"hider {index_hider_move}: {self.__hiders[index_hider_move].cur_x} {self.__hiders[index_hider_move].cur_y}")
             self.__seeker.update_hider_pos(current_hider.cur_x, current_hider.cur_y, x, y)
             if not self.overlap_hider(self.__hiders[index_hider_move].cur_x - x, self.__hiders[index_hider_move].cur_y - y, index_hider_move):
                 self.__map[self.__hiders[index_hider_move].cur_x - x][self.__hiders[index_hider_move].cur_y - y] = Config.EMPTY
@@ -134,7 +134,7 @@ class Game:
             #     break
             if self.__is_seeker_turn():
                 self.make_seeker_move()
-                print(f"seeker {self.__seeker.cur_x} {self.__seeker.cur_y}")
+                # print(f"seeker {self.__seeker.cur_x} {self.__seeker.cur_y}")
             else:
                 self.make_hider_move(is_debug)
             self.update_game_map()

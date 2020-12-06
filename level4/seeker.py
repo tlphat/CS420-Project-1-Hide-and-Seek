@@ -140,44 +140,44 @@ class Seeker(Player):
             return self.__make_a_move(x, y)
         
         if not self.__has_seen_announce() and not self.__is_turn_to_move(turn):
-            print("odd cases")
+            # print("odd cases")
             return (0, 0)
         if not self.__has_seen_announce():
             self.__cross_out_redundant_path()
         if self.__has_checked_all_announce():
             # self.__should_give_up = True
             # return self.__make_a_move(0, 0)
-            print("has checked all announce")
+            # print("has checked all announce")
             return self.push_tactic()
         if len(self.radar_path) == 0:
             self.__explore()
         if len(self.radar_path) == 0:
             #return self.__make_a_move(0, 0)
-            print("radar path 0")
+            # print("radar path 0")
             return self.push_tactic()
         x, y = self.radar_path.pop(0)
-        print("normal case")
-        print(self.map)
+        # print("normal case")
+        # print(self.map)
         return self.__make_a_move(x, y)
 
     def push_tactic(self):
         self.radar_path = []
-        print("unreachable: ", end = "")
+        # print("unreachable: ", end = "")
         for i in self.unreachable_obstacles:
             print(i, end = " ")
-        print()
+        # print()
         obstacle_id, obstacle_nearby = self.check_nearby_obstacle()
-        print("obs id {}".format(obstacle_id))
+        # print("obs id {}".format(obstacle_id))
         if not obstacle_nearby:
-            print("find nearby")
+            # print("find nearby")
             return self.find_arbitrary_obstacle()
-        print("get dir")
+        # print("get dir")
         x, y = self.get_dir_to_obstacle(obstacle_id)
         if self.is_pushable(obstacle_id, (x, y)):
             self.unreachable_obstacles = set()
             self.push_obstacle(obstacle_id, (x, y))
             return self.__make_a_move(x, y)
-        print("not pushable")
+        # print("not pushable")
         self.unreachable_obstacles.add(obstacle_id)
         self.obs_path = []
         return self.find_arbitrary_obstacle()
@@ -204,12 +204,12 @@ class Seeker(Player):
                         if len(tmp_path) != 0:
                             if len(self.obs_path) == 0 or len(tmp_path) < len(self.obs_path):
                                 self.obs_path = tmp_path
-                            print("dest {} {}".format(dest_x, dest_y))
+                            # print("dest {} {}".format(dest_x, dest_y))
         if len(self.obs_path) == 0:
-            print("cannot find nearest obstacle")
+            # print("cannot find nearest obstacle")
             self.__should_give_up = True
             return self.__make_a_move(0, 0)
-        print(self.obs_path)
+        # print(self.obs_path)
         x, y = self.obs_path.pop(0)
         return self.__make_a_move(x, y)
 
