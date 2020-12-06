@@ -8,7 +8,7 @@ import random
 
 class Hider(Player):
     def __init__(self, map, n, m, obs_range, init_pos, seeker_init_pos, obs, obs_sign_to_hider, obs_need, hide_place,
-                 hider_status, obs_to_cell, id):
+                 hider_status, obs_to_cell, is_generate_path, id):
         super().__init__(map, n, m, obs_range, init_pos, obs)
         self.__seeker_init_pos = seeker_init_pos
         self.__cur_dest = init_pos
@@ -32,6 +32,7 @@ class Hider(Player):
         self.hide_place = hide_place
         self.hider_status = hider_status
         self.obs_to_cell = obs_to_cell
+        self.is_generate_path = is_generate_path
         self.id = id
 
     def update_seeker_pos(self, x, y):
@@ -89,12 +90,15 @@ class Hider(Player):
 
     def make_a_move(self, dxy):
         dx, dy = dxy
-        self.cur_x, self.cur_y = self.cur_x + dx, self.cur_y + dy
+        print("from (", self.cur_x, self.cur_y, ") to (", dx, dy, ")")
+
+        self.cur_x, self.cur_y = dx, dy
         self.__cur_dest = (self.cur_x, self.cur_y)
         self.__update_observable_range()
 
-        if self.id in self.obs_sign_to_hider:
-            obs_id = self.obs_sign_to_hider.index(self.id)
+        if self.id in self.obs_sign_to_hider and self.is_bring_obs(self.obs_sign_to_hider[0]):
+            print("bring ", self.obs[self.obs_sign_to_hider[0]])
+            obs_id = 0
             for i in range(len(self.obs[obs_id])):
                 self.obs[obs_id][i] = self.obs[obs_id][i][0] + dx, self.obs[obs_id][i][1] + dy
         self.update_obs_loc()
@@ -148,6 +152,7 @@ class Hider(Player):
                     self.map[i][j] = Config.EMPTY
         for obstacle in self.obs:
             for x, y in obstacle:
+                # print("err", x, y, obstacle)
                 self.map[x][y] = Config.OBS
 
     def is_obs_blocked_up(self, obs_id):
@@ -234,8 +239,8 @@ class Hider(Player):
         path = [[(-1, -1)] * self.m for _ in range(self.n)]
         q = Queue()
         visited = [[False] * self.m for _ in range(self.n)]
-        visited[self.obs[obs_id][0]][self.obs[obs_id][1]] = True
-        q.put(self.obs[obs_id])
+        visited[self.obs[obs_id][0][0]][self.obs[obs_id][0][1]] = True
+        q.put(self.obs[obs_id][0])
         while not q.empty():
             x, y = q.get()
             for dx, dy in Config.DIR:
@@ -249,7 +254,19 @@ class Hider(Player):
                     q.put((ux, uy))
                     path[ux][uy] = x, y
                 if (ux, uy) == (u, v):
-                    return path
+
+                    # print("hello")
+                    temp_path = []
+                    x, y = u, v
+                    while path[x][y] != (self.obs[obs_id][0][0], self.obs[obs_id][0][1]):
+                        if path[x][y] == (-1, -1):
+                            print("wao")
+                            exit(0)
+                        temp_path.append(path[x][y])
+                        x, y = path[x][y]
+                    temp_path.reverse()
+                    temp_path.append((u, v))
+                    return temp_path
         return None
 
     def is_bring_obs(self, obs_id):
@@ -262,14 +279,22 @@ class Hider(Player):
     def find_way_push_obs_to_this_cell(self, obs_id, u, v):
         path = None
         for cell in self.obs[obs_id]:
+            # print("cell:", cell)
             for dx, dy in Config.DIR:
                 if dx * dx + dy * dy == 1 and self.isAccessable(cell[0] + dx, cell[1] + dy):
-                    path1 = self.__BFS((self.cur_x, self.cur_y), (cell[0] + dx, cell[1] + dy))
+                    # print("dx, dy:", dx, dy)
+
+                    # print("begin find way from ", self.cur_x, self.cur_y, " to ", cell[0] + dx, cell[0] + dy)
+                    path1 = self.__find_path((self.cur_x, self.cur_y), (cell[0] + dx, cell[1] + dy))
+                    # print("finish")
+                    # print("begin 284")
                     path2 = self.can_obs_and_hider_go_to_this_location(obs_id, cell[0]+dx, cell[0]+dy, u, v)
+                    # print("finish")
 
-                    path1.append(path2)
+                    for i in path2:
+                        path1.append(i)
 
-                    if path is None or len(path1) < len(self.prepare_path):
+                    if path is None or len(path1) < len(path):
                         path = path1
         return path
 
@@ -277,6 +302,9 @@ class Hider(Player):
         return self.hider_status[hider_id]
 
     def can_this_cell_be_place_for_hider_to_hide_and_place_obs_around(self, x, y):  # None | cell, list_obs, obs_dest, cost
+        if x == 4 and y == 11:
+            return [4, 11], [1, 0], [[3, 10], [3, 9]], 10
+        return None
         if not self.isAccessable(x, y):
             return None
         up = not self.isAccessable(x - 1, y)
@@ -291,8 +319,6 @@ class Hider(Player):
 
         if up and down and left and right and up_left and up_right and down_right and down_left:
             return None
-
-        return list_obs,
 
     def generate_the_way_to_win(self):
         # TODO: self.prepare_path contains list of (dx, dy) towards self.obs[self.obs_id]
@@ -311,23 +337,21 @@ class Hider(Player):
                     best_obs_dest = obs_dest
                     best_cost = cost
 
-        self.obs_need = best_list_obs
-        self.obs_to_cell = best_obs_dest
-        self.hide_place = best_cell
-
-        id_hider = -1
-        for id in len(self.obs_need):
-            id_hider = (id_hider + 1) % len(self.hider_status)
-            while not self.is_this_hider_still_alive(id_hider):
-                id_hider = (id_hider + 1) % len(self.hider_status)
-
-            self.obs_sign_to_hider[self.obs_need[id]] = id_hider
+        for obs_id in best_list_obs:
+            self.obs_need.append(obs_id)
+        for loc in best_obs_dest:
+            self.obs_to_cell.append(loc)
+        self.hide_place[0], self.hide_place[1] = best_cell[0], best_cell[1]
 
     def generate_path(self):
+        if self.obs_sign_to_hider[0] is None:
+            self.obs_sign_to_hider[0] = self.id
+        # print("finish first step")
         if self.id in self.obs_sign_to_hider:
-            self.prepare_path = self.find_way_push_obs_to_this_cell(self.obs_sign_to_hider.index(self.id),
-                                                                    self.obs_to_cell[self.obs_need.index(self.obs_sign_to_hider.index(self.id))][0],
-                                                                    self.obs_to_cell[self.obs_need.index(self.obs_sign_to_hider.index(self.id))][1])
+            # print("go to first if")
+            self.prepare_path = self.find_way_push_obs_to_this_cell(self.obs_need[0], self.obs_to_cell[0][0],
+                                                                    self.obs_to_cell[0][1])
+            # print("finish first if")
         else:
             self.prepare_path = self.__BFS((self.cur_x, self.cur_y), self.hide_place)
 
@@ -335,13 +359,19 @@ class Hider(Player):
         if not self.seeker_is_reachable():
             return self.make_a_move((0, 0))
 
-        if len(self.obs_need) == 0:
-            self.generate_path_the_way_to_win()
-        if len(self.prepare_path) == 0:
+        if not self.is_generate_path:
+            self.is_generate_path = True
+            # print("start generate the whole path")
+            self.generate_the_way_to_win()
+            # print("end generate the whole path")
+        if self.prepare_path is None:
+            # print("start generate path")
             self.generate_path()
-        if len(self.prepare_path) > 0:
+            # print("end generate path")
+        if self.prepare_path is not None and len(self.prepare_path) > 0:
+            print(self.prepare_path)
             return self.make_a_move(self.prepare_path.pop(0))
-        return self.make_a_move((0, 0))
+        return self.make_a_move((self.cur_x, self.cur_y))
 
         # maybe prepare time is over but its still time to lock down hider
         # go towards obstacle
@@ -367,7 +397,7 @@ class Hider(Player):
     def move(self, turn):
         # TODO: uncomment the next two lines to test
         # if self.is_pregame(turn):
-        #     return self.prepare()
+        return self.prepare()
         self.check_for_seeker()
         if self.is_regconized:
             self.__run()
