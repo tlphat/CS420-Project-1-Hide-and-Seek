@@ -79,8 +79,8 @@ class Seeker(Player):
 
     def move(self, turn):
         # TODO: uncomment the next two lines to test
-        # if self.is_pregame(turn):
-        #     return self.__make_a_move(0, 0)
+        return self.__make_a_move(0, 0)
+        #if self.is_pregame(turn):
         if self.__found_hider():
             x, y = self.detected_coord
             self.path = copy.deepcopy(self.__find_path(x, y))
