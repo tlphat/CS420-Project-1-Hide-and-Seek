@@ -347,7 +347,7 @@ class Hider(Player):
                 and not self.isAccessable(x - 1, y + 1) and not self.isAccessable(x + 1, y - 1):
             if not self.isAccessable(x + 2, y - 1):
                 id_ver, path_ver = self.find_vertical_obs_to_this_cell_except_this_obs(x, y + 1, None)
-                id_hor, path_hor = self.find_horizontal_obs_to_this_cell_except_this_obs(x + 3, y, None)
+                id_hor, path_hor = self.find_horizontal_obs_to_this_cell_except_this_obs(x + 2, y, None)
                 des_ver = [x, y + 1]
                 des_hor = [x + 2, y]
             elif not self.isAccessable(x - 1, y + 2):
