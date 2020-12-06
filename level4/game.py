@@ -17,7 +17,7 @@ class Game:
         self.__obs_to_cell = []
         self.__hide_place = [None, None]
         self.__hider_status = []
-        self.__is_generate_path = False
+        self.__is_generate_path = [False]
 
     def read_input(self, map_name, is_debug):
         fin = open("../map/" + map_name + ".txt", "r")
@@ -122,7 +122,7 @@ class Game:
         self.__winner = Config.HIDER
         message = ""
         daylabien = 0
-        while daylabien < 50:
+        while daylabien < 100:
             daylabien += 1
             if self.__hiders_found() and (self.__turn - 1) % (self.__num_hiders + 1) == 1:
                 self.__winner = Config.SEEKER
